@@ -1,0 +1,359 @@
+{
+  "semilla": 42,
+  "n_registros": 10000,
+  "prioridad": {
+    "peso_necesidad": 0.35,
+    "peso_acceso": 0.25,
+    "peso_vulnerabilidad": 0.20,
+    "peso_brecha": 0.20
+  },
+  "clasificacion": {
+    "baja": 42,
+    "media": 54,
+    "alta": 66
+  },
+  "catalogos": {
+    "tipos_comunidad": [
+      "Rural dispersa",
+      "Rural",
+      "Indígena",
+      "Afrodescendiente",
+      "Campesina"
+    ],
+    "acceso_vial": ["Bueno", "Regular", "Difícil", "Muy difícil"],
+    "transporte": [
+      "Terrestre",
+      "Terrestre + 4x4",
+      "Motocicleta",
+      "Fluvial",
+      "Fluvial + Terrestre",
+      "Marítimo",
+      "Limitado",
+      "No disponible"
+    ],
+    "temporadas": ["Seca", "Lluvias", "Transición"],
+    "conectividad": ["Buena", "Regular", "Baja", "Sin conexión"]
+  },
+  "departamentos": {
+    "Amazonas": {
+      "zona": "Amazonía",
+      "altitud_media": 100,
+      "riesgo_inundacion": 0.45,
+      "riesgo_deslizamiento": 0.10,
+      "transporte_dominante": "Fluvial",
+      "prob_indigena": 0.55,
+      "prob_afro": 0.05,
+      "acceso_vial_base": "Muy difícil"
+    },
+    "Antioquia": {
+      "zona": "Andina",
+      "altitud_media": 1800,
+      "riesgo_inundacion": 0.25,
+      "riesgo_deslizamiento": 0.45,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Regular"
+    },
+    "Arauca": {
+      "zona": "Orinoquía",
+      "altitud_media": 300,
+      "riesgo_inundacion": 0.35,
+      "riesgo_deslizamiento": 0.15,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.25,
+      "prob_afro": 0.05,
+      "acceso_vial_base": "Regular"
+    },
+    "Atlántico": {
+      "zona": "Caribe",
+      "altitud_media": 20,
+      "riesgo_inundacion": 0.40,
+      "riesgo_deslizamiento": 0.05,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.05,
+      "prob_afro": 0.15,
+      "acceso_vial_base": "Bueno"
+    },
+    "Bolívar": {
+      "zona": "Caribe",
+      "altitud_media": 150,
+      "riesgo_inundacion": 0.45,
+      "riesgo_deslizamiento": 0.20,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.35,
+      "acceso_vial_base": "Regular"
+    },
+    "Boyacá": {
+      "zona": "Andina",
+      "altitud_media": 2700,
+      "riesgo_inundacion": 0.20,
+      "riesgo_deslizamiento": 0.50,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.20,
+      "prob_afro": 0.05,
+      "acceso_vial_base": "Regular"
+    },
+    "Caldas": {
+      "zona": "Andina",
+      "altitud_media": 2100,
+      "riesgo_inundacion": 0.25,
+      "riesgo_deslizamiento": 0.50,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Regular"
+    },
+    "Caquetá": {
+      "zona": "Amazonía",
+      "altitud_media": 400,
+      "riesgo_inundacion": 0.40,
+      "riesgo_deslizamiento": 0.30,
+      "transporte_dominante": "Fluvial + Terrestre",
+      "prob_indigena": 0.25,
+      "prob_afro": 0.15,
+      "acceso_vial_base": "Difícil"
+    },
+    "Casanare": {
+      "zona": "Orinoquía",
+      "altitud_media": 350,
+      "riesgo_inundacion": 0.40,
+      "riesgo_deslizamiento": 0.10,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.20,
+      "prob_afro": 0.05,
+      "acceso_vial_base": "Regular"
+    },
+    "Cauca": {
+      "zona": "Andina",
+      "altitud_media": 1700,
+      "riesgo_inundacion": 0.25,
+      "riesgo_deslizamiento": 0.55,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.35,
+      "prob_afro": 0.25,
+      "acceso_vial_base": "Difícil"
+    },
+    "Cesar": {
+      "zona": "Caribe",
+      "altitud_media": 300,
+      "riesgo_inundacion": 0.30,
+      "riesgo_deslizamiento": 0.35,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.25,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Regular"
+    },
+    "Chocó": {
+      "zona": "Pacífica",
+      "altitud_media": 100,
+      "riesgo_inundacion": 0.60,
+      "riesgo_deslizamiento": 0.45,
+      "transporte_dominante": "Fluvial + Terrestre",
+      "prob_indigena": 0.20,
+      "prob_afro": 0.55,
+      "acceso_vial_base": "Muy difícil"
+    },
+    "Cundinamarca": {
+      "zona": "Andina",
+      "altitud_media": 2600,
+      "riesgo_inundacion": 0.25,
+      "riesgo_deslizamiento": 0.45,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.05,
+      "acceso_vial_base": "Bueno"
+    },
+    "Córdoba": {
+      "zona": "Caribe",
+      "altitud_media": 150,
+      "riesgo_inundacion": 0.45,
+      "riesgo_deslizamiento": 0.25,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.30,
+      "acceso_vial_base": "Regular"
+    },
+    "Guainía": {
+      "zona": "Amazonía",
+      "altitud_media": 200,
+      "riesgo_inundacion": 0.50,
+      "riesgo_deslizamiento": 0.10,
+      "transporte_dominante": "Fluvial",
+      "prob_indigena": 0.60,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Muy difícil"
+    },
+    "Guaviare": {
+      "zona": "Amazonía",
+      "altitud_media": 350,
+      "riesgo_inundacion": 0.45,
+      "riesgo_deslizamiento": 0.15,
+      "transporte_dominante": "Fluvial + Terrestre",
+      "prob_indigena": 0.40,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Difícil"
+    },
+    "Huila": {
+      "zona": "Andina",
+      "altitud_media": 1000,
+      "riesgo_inundacion": 0.35,
+      "riesgo_deslizamiento": 0.40,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.15,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Regular"
+    },
+    "La Guajira": {
+      "zona": "Caribe",
+      "altitud_media": 150,
+      "riesgo_inundacion": 0.30,
+      "riesgo_deslizamiento": 0.10,
+      "transporte_dominante": "Terrestre + Motocicleta",
+      "prob_indigena": 0.55,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Difícil"
+    },
+    "Magdalena": {
+      "zona": "Caribe",
+      "altitud_media": 200,
+      "riesgo_inundacion": 0.40,
+      "riesgo_deslizamiento": 0.35,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.15,
+      "prob_afro": 0.25,
+      "acceso_vial_base": "Regular"
+    },
+    "Meta": {
+      "zona": "Orinoquía",
+      "altitud_media": 450,
+      "riesgo_inundacion": 0.35,
+      "riesgo_deslizamiento": 0.15,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.25,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Regular"
+    },
+    "Nariño": {
+      "zona": "Andina",
+      "altitud_media": 2500,
+      "riesgo_inundacion": 0.30,
+      "riesgo_deslizamiento": 0.55,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.30,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Difícil"
+    },
+    "Norte de Santander": {
+      "zona": "Andina",
+      "altitud_media": 1500,
+      "riesgo_inundacion": 0.30,
+      "riesgo_deslizamiento": 0.50,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.15,
+      "prob_afro": 0.05,
+      "acceso_vial_base": "Regular"
+    },
+    "Putumayo": {
+      "zona": "Amazonía",
+      "altitud_media": 1200,
+      "riesgo_inundacion": 0.40,
+      "riesgo_deslizamiento": 0.45,
+      "transporte_dominante": "Fluvial + Terrestre",
+      "prob_indigena": 0.45,
+      "prob_afro": 0.15,
+      "acceso_vial_base": "Difícil"
+    },
+    "Quindío": {
+      "zona": "Andina",
+      "altitud_media": 1500,
+      "riesgo_inundacion": 0.25,
+      "riesgo_deslizamiento": 0.45,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.08,
+      "prob_afro": 0.08,
+      "acceso_vial_base": "Bueno"
+    },
+    "Risaralda": {
+      "zona": "Andina",
+      "altitud_media": 1500,
+      "riesgo_inundacion": 0.25,
+      "riesgo_deslizamiento": 0.45,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.12,
+      "acceso_vial_base": "Bueno"
+    },
+    "San Andrés y Providencia": {
+      "zona": "Caribe",
+      "altitud_media": 5,
+      "riesgo_inundacion": 0.20,
+      "riesgo_deslizamiento": 0.02,
+      "transporte_dominante": "Marítimo",
+      "prob_indigena": 0.05,
+      "prob_afro": 0.20,
+      "acceso_vial_base": "Regular"
+    },
+    "Santander": {
+      "zona": "Andina",
+      "altitud_media": 1200,
+      "riesgo_inundacion": 0.30,
+      "riesgo_deslizamiento": 0.50,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.12,
+      "prob_afro": 0.08,
+      "acceso_vial_base": "Regular"
+    },
+    "Sucre": {
+      "zona": "Caribe",
+      "altitud_media": 100,
+      "riesgo_inundacion": 0.50,
+      "riesgo_deslizamiento": 0.15,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.08,
+      "prob_afro": 0.35,
+      "acceso_vial_base": "Regular"
+    },
+    "Tolima": {
+      "zona": "Andina",
+      "altitud_media": 800,
+      "riesgo_inundacion": 0.35,
+      "riesgo_deslizamiento": 0.50,
+      "transporte_dominante": "Terrestre",
+      "prob_indigena": 0.15,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Regular"
+    },
+    "Valle del Cauca": {
+      "zona": "Andina",
+      "altitud_media": 1500,
+      "riesgo_inundacion": 0.35,
+      "riesgo_deslizamiento": 0.40,
+      "transporte_dominante": "Terrestre + 4x4",
+      "prob_indigena": 0.10,
+      "prob_afro": 0.25,
+      "acceso_vial_base": "Regular"
+    },
+    "Vaupés": {
+      "zona": "Amazonía",
+      "altitud_media": 250,
+      "riesgo_inundacion": 0.50,
+      "riesgo_deslizamiento": 0.10,
+      "transporte_dominante": "Fluvial",
+      "prob_indigena": 0.65,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Muy difícil"
+    },
+    "Vichada": {
+      "zona": "Orinoquía",
+      "altitud_media": 300,
+      "riesgo_inundacion": 0.55,
+      "riesgo_deslizamiento": 0.10,
+      "transporte_dominante": "Fluvial + Terrestre",
+      "prob_indigena": 0.45,
+      "prob_afro": 0.10,
+      "acceso_vial_base": "Muy difícil"
+    }
+  }
+}
