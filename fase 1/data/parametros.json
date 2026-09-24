@@ -1,6 +1,12 @@
 {
   "semilla": 42,
   "n_registros": 10000,
+  "ruido_puntaje": 6.0,
+  "split": {
+    "train": 0.70,
+    "val": 0.15,
+    "test": 0.15
+  },
   "prioridad": {
     "peso_necesidad": 0.35,
     "peso_acceso": 0.25,

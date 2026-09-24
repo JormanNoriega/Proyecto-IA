@@ -18,8 +18,17 @@ COL_BORRAR_ML = [
     "indice_acceso",
     "indice_vulnerabilidad",
     "indice_brecha",
-    "puntaje_prioridad",
 ]
+
+ORDEN_TARGETS = ["puntaje_prioridad", "prioridad", "split"]
+
+CATEGORICAS_ESPERADAS = {
+    "tipo_comunidad": "tipos_comunidad",
+    "acceso_vial": "acceso_vial",
+    "transporte_disponible": "transporte",
+    "conectividad": "conectividad",
+    "temporada": "temporadas",
+}
 
 
 def cargar_json(ruta):
@@ -32,8 +41,8 @@ def normalizar(probabilidades):
     return probabilidades / probabilidades.sum()
 
 
-def elegir(opciones, probabilidades):
-    return np.random.choice(opciones, p=normalizar(probabilidades))
+def elegir(rng, opciones, probabilidades):
+    return rng.choice(opciones, p=normalizar(probabilidades))
 
 
 def limitar(valor, minimo, maximo):
@@ -152,15 +161,35 @@ def factor_distancia(transporte_dominante):
     }.get(transporte_dominante, 1.0)
 
 
-def generar_registro(i, dep, info, catalogos):
-    municipio = np.random.choice(dep["ciudades"])
+def factor_familia(tipo_comunidad):
+    return {
+        "Indígena": 1.25,
+        "Afrodescendiente": 1.15,
+        "Rural dispersa": 1.05,
+        "Rural": 1.0,
+        "Campesina": 1.0,
+    }[tipo_comunidad]
+
+
+def velocidad_por_transporte(rng, transporte):
+    if "Fluvial" in transporte:
+        return rng.uniform(10, 30)
+    if transporte == "Marítimo":
+        return rng.uniform(15, 30)
+    if transporte in ("Limitado", "No disponible"):
+        return rng.uniform(8, 20)
+    return rng.uniform(15, 55)
+
+
+def generar_registro(rng, i, dep, info, catalogos):
+    municipio = rng.choice(dep["ciudades"])
 
     zona = info["zona"]
     transporte_dominante = info["transporte_dominante"]
 
     riesgo_inundacion = round(
         float(limitar(
-            info["riesgo_inundacion"] + np.random.normal(0, 0.08),
+            info["riesgo_inundacion"] + rng.normal(0, 0.08),
             0,
             1,
         )),
@@ -168,18 +197,21 @@ def generar_registro(i, dep, info, catalogos):
     )
     riesgo_deslizamiento = round(
         float(limitar(
-            info["riesgo_deslizamiento"] + np.random.normal(0, 0.08),
+            info["riesgo_deslizamiento"] + rng.normal(0, 0.08),
             0,
             1,
         )),
         2,
     )
+
+    altitud_media = info["altitud_media"]
+    if altitud_media < 200:
+        sigma_altitud = max(8.0, altitud_media * 0.12)
+    else:
+        sigma_altitud = max(altitud_media * 0.15, 80)
     altitud_msnm = int(
         limitar(
-            np.random.normal(
-                info["altitud_media"],
-                max(info["altitud_media"] * 0.15, 80),
-            ),
+            rng.normal(altitud_media, sigma_altitud),
             0,
             4500,
         )
@@ -191,28 +223,30 @@ def generar_registro(i, dep, info, catalogos):
         info["prob_afro"],
     )
     tipo_comunidad = elegir(
+        rng,
         opciones_tc,
         [pesos_tc[opcion] for opcion in opciones_tc],
     )
 
     poblacion_total = int(
         limitar(
-            np.random.lognormal(mean=5.8, sigma=0.75),
+            rng.lognormal(mean=5.8, sigma=0.75),
             50,
             5000,
         )
     )
 
-    menores_5 = int(poblacion_total * np.random.uniform(0.08, 0.22))
-    adultos_mayores = int(poblacion_total * np.random.uniform(0.05, 0.18))
-    gestantes = int(poblacion_total * np.random.uniform(0.01, 0.05))
+    factor = factor_familia(tipo_comunidad)
+    menores_5 = int(poblacion_total * rng.uniform(0.08, 0.22) * factor)
+    adultos_mayores = int(poblacion_total * rng.uniform(0.05, 0.18))
+    gestantes = int(poblacion_total * rng.uniform(0.01, 0.05) * factor)
     personas_discapacidad = int(
-        poblacion_total * np.random.uniform(0.01, 0.08)
+        poblacion_total * rng.uniform(0.01, 0.08)
     )
 
     distancia_km = round(
         float(limitar(
-            np.random.gamma(shape=2.2, scale=15)
+            rng.gamma(shape=2.2, scale=15)
             * factor_distancia(transporte_dominante),
             1,
             180,
@@ -220,27 +254,29 @@ def generar_registro(i, dep, info, catalogos):
         2,
     )
 
-    if "Fluvial" in transporte_dominante:
-        velocidad_promedio = np.random.uniform(10, 30)
-    else:
-        velocidad_promedio = np.random.uniform(15, 55)
-
-    tiempo_acceso_min = round(
-        float((distancia_km / velocidad_promedio) * 60),
-        2,
-    )
-
     opciones_av, pesos_av = pesos_acceso_vial(
         distancia_km,
         info["acceso_vial_base"],
     )
-    acceso_vial = elegir(opciones_av, pesos_av)
+    acceso_vial = elegir(rng, opciones_av, pesos_av)
 
     opciones_tp, pesos_tp = pesos_transporte(
         acceso_vial,
         transporte_dominante,
     )
-    transporte = elegir(opciones_tp, pesos_tp)
+    transporte = elegir(rng, opciones_tp, pesos_tp)
+
+    velocidad_promedio = velocidad_por_transporte(rng, transporte)
+    penalizacion_tiempo = {
+        "Bueno": 1.0,
+        "Regular": 1.15,
+        "Difícil": 1.4,
+        "Muy difícil": 1.8,
+    }[acceso_vial]
+    tiempo_acceso_min = round(
+        float((distancia_km / velocidad_promedio) * 60 * penalizacion_tiempo),
+        2,
+    )
 
     prob_agua = {
         "Rural dispersa": 0.45,
@@ -257,10 +293,10 @@ def generar_registro(i, dep, info, catalogos):
         "Campesina": 0.35,
     }
     agua_potable = int(
-        np.random.random() < prob_agua[tipo_comunidad]
+        rng.random() < prob_agua[tipo_comunidad]
     )
     alcantarillado = int(
-        np.random.random() < prob_alcantarillado[tipo_comunidad]
+        rng.random() < prob_alcantarillado[tipo_comunidad]
     )
 
     if zona in ("Andina", "Caribe"):
@@ -274,12 +310,23 @@ def generar_registro(i, dep, info, catalogos):
 
     puesto_salud_cercano = int(
         distancia_km < umbral_puesto
-        and np.random.random() < prob_puesto
+        and rng.random() < prob_puesto
     )
+
+    penal_distancia = min(distancia_km / 180, 1) * 10
+    penal_acceso = {
+        "Bueno": 0.0,
+        "Regular": 3.0,
+        "Difícil": 6.0,
+        "Muy difícil": 10.0,
+    }[acceso_vial]
 
     cobertura_salud_pct = round(
         float(limitar(
-            np.random.normal(75 + ajuste_cobertura, 12),
+            rng.normal(
+                78 - penal_distancia - penal_acceso + ajuste_cobertura,
+                10,
+            ),
             35,
             98,
         )),
@@ -287,24 +334,32 @@ def generar_registro(i, dep, info, catalogos):
     )
     cobertura_vacunacion_pct = round(
         float(limitar(
-            np.random.normal(70 + ajuste_cobertura, 15),
+            rng.normal(
+                73 - penal_distancia * 0.8 - penal_acceso * 0.7
+                + ajuste_cobertura,
+                13,
+            ),
             25,
             98,
         )),
         2,
     )
 
-    lam_casos = max(0.5, poblacion_total / 500) * (
-        1 + 0.4 * info["riesgo_inundacion"]
+    factor_cobertura = 1 + max(0.0, 85 - cobertura_vacunacion_pct) / 100
+    lam_casos = (
+        max(0.5, poblacion_total / 300)
+        * (1 + 0.4 * info["riesgo_inundacion"])
+        * factor_cobertura
     )
-    casos_prioritarios_30d = int(np.random.poisson(lam=lam_casos))
+    casos_prioritarios_30d = int(rng.poisson(lam=lam_casos))
 
     enfermedades_cronicas = int(
-        poblacion_total * np.random.uniform(0.04, 0.18)
+        adultos_mayores * rng.uniform(0.35, 0.65)
+        + (poblacion_total - adultos_mayores) * rng.uniform(0.02, 0.06)
     )
 
     prob_alerta = 0.08 + 0.05 * info["riesgo_inundacion"]
-    alerta_epidemiologica = int(np.random.random() < prob_alerta)
+    alerta_epidemiologica = int(rng.random() < prob_alerta)
 
     penalizacion_brigada = {
         "Bueno": 0.0,
@@ -314,9 +369,7 @@ def generar_registro(i, dep, info, catalogos):
     }[acceso_vial]
     ultima_brigada_dias = int(
         limitar(
-            np.random.exponential(
-                scale=150 * (1 + penalizacion_brigada)
-            ),
+            rng.exponential(scale=130 * (1 + penalizacion_brigada)),
             0,
             730,
         )
@@ -329,11 +382,11 @@ def generar_registro(i, dep, info, catalogos):
         "Muy difícil": 0.45,
     }[acceso_vial]
     brigadas_ultimos_12m = int(
-        limitar(np.random.poisson(lam=lam_brigadas), 0, 8)
+        limitar(rng.poisson(lam=lam_brigadas), 0, 8)
     )
 
     opciones_con, pesos_con = pesos_conectividad(zona)
-    conectividad = elegir(opciones_con, pesos_con)
+    conectividad = elegir(rng, opciones_con, pesos_con)
 
     demanda_extra = 0.0
     if acceso_vial in ("Difícil", "Muy difícil"):
@@ -342,7 +395,7 @@ def generar_registro(i, dep, info, catalogos):
         demanda_extra += 5.0
     demanda_insatisfecha_pct = round(
         float(limitar(
-            np.random.normal(30 + demanda_extra, 15),
+            rng.normal(30 + demanda_extra, 15),
             2,
             90,
         )),
@@ -351,6 +404,7 @@ def generar_registro(i, dep, info, catalogos):
 
     prob_lluvias = 0.30 + 0.25 * info["riesgo_inundacion"]
     temporada = elegir(
+        rng,
         catalogos["temporadas"],
         [
             (1 - prob_lluvias) * 0.57,
@@ -360,8 +414,8 @@ def generar_registro(i, dep, info, catalogos):
     )
 
     indice_necesidad = (
-        (100 - cobertura_vacunacion_pct) * 0.30
-        + min(casos_prioritarios_30d * 8, 30)
+        (100 - cobertura_vacunacion_pct) / 100 * 30
+        + min(casos_prioritarios_30d / max(poblacion_total, 1) * 1000 * 4, 30)
         + min(
             enfermedades_cronicas / max(poblacion_total, 1) * 100,
             20,
@@ -371,8 +425,8 @@ def generar_registro(i, dep, info, catalogos):
     indice_necesidad = float(limitar(indice_necesidad, 0, 100))
 
     indice_acceso = (
-        min(distancia_km / 1.5, 50)
-        + min(tiempo_acceso_min / 4, 30)
+        min(distancia_km / 2, 45)
+        + min(tiempo_acceso_min / 5, 30)
         + {
             "Bueno": 0,
             "Regular": 8,
@@ -390,18 +444,22 @@ def generar_registro(i, dep, info, catalogos):
     porcentaje_vulnerable = (
         poblacion_vulnerable / poblacion_total
     ) * 100
-    indice_vulnerabilidad = porcentaje_vulnerable * 2.5
+    indice_vulnerabilidad = limitar(
+        porcentaje_vulnerable / 55 * 70,
+        0,
+        70,
+    )
     if agua_potable == 0:
         indice_vulnerabilidad += 15
     if alcantarillado == 0:
-        indice_vulnerabilidad += 10
+        indice_vulnerabilidad += 15
     indice_vulnerabilidad = float(
         limitar(indice_vulnerabilidad, 0, 100)
     )
 
     indice_brecha = (
-        min(ultima_brigada_dias / 5, 50)
-        + demanda_insatisfecha_pct * 0.5
+        min(ultima_brigada_dias / 8, 40)
+        + demanda_insatisfecha_pct * 0.4
         + (20 if puesto_salud_cercano == 0 else 0)
     )
     indice_brecha = float(limitar(indice_brecha, 0, 100))
@@ -460,6 +518,38 @@ def clasificar(puntaje, umbrales):
     return "CRÍTICA"
 
 
+def asignar_split(rng, n, proporciones):
+    etiquetas = np.array(["train", "val", "test"])
+    probabilidades = np.array([
+        proporciones["train"],
+        proporciones["val"],
+        proporciones["test"],
+    ])
+    return rng.choice(etiquetas, size=n, p=probabilidades / probabilidades.sum())
+
+
+def validar_catalogos(df, catalogos):
+    problemas = []
+    for columna, clave in CATEGORICAS_ESPERADAS.items():
+        permitidos = set(catalogos[clave])
+        inesperados = set(df[columna]) - permitidos
+        if inesperados:
+            problemas.append(f"{columna}: {sorted(inesperados)}")
+    if problemas:
+        raise ValueError(
+            "Valores fuera de catalogo: " + "; ".join(problemas)
+        )
+
+
+def resumen_indice(serie):
+    saturados = (serie >= 99.5).mean() * 100
+    return (
+        f"min={serie.min():6.2f} max={serie.max():6.2f} "
+        f"avg={serie.mean():6.2f} p50={serie.median():6.2f} "
+        f"saturados(>=99.5)={saturados:5.1f}%"
+    )
+
+
 def main():
     territorios = limpiar_municipios(
         cargar_json(DATA_DIR / "colombia.json")
@@ -472,8 +562,10 @@ def main():
     umbrales = parametros["clasificacion"]
     catalogos = parametros["catalogos"]
     info_deps = parametros["departamentos"]
+    ruido_puntaje = parametros["ruido_puntaje"]
+    proporciones_split = parametros["split"]
 
-    np.random.seed(semilla)
+    rng = np.random.default_rng(semilla)
 
     nombres_json = {dep["departamento"] for dep in territorios}
     nombres_param = set(info_deps)
@@ -493,13 +585,10 @@ def main():
 
     registros = []
     for i in range(n_registros):
-        idx = np.random.choice(
-            len(territorios),
-            p=probabilidad_dep,
-        )
+        idx = rng.choice(len(territorios), p=probabilidad_dep)
         dep = territorios[idx]
         info = info_deps[dep["departamento"]]
-        registro = generar_registro(i, dep, info, catalogos)
+        registro = generar_registro(rng, i, dep, info, catalogos)
 
         (
             indice_necesidad,
@@ -511,10 +600,9 @@ def main():
         puntaje_prioridad = (
             indice_necesidad * pesos_prioridad["peso_necesidad"]
             + indice_acceso * pesos_prioridad["peso_acceso"]
-            + indice_vulnerabilidad
-            * pesos_prioridad["peso_vulnerabilidad"]
+            + indice_vulnerabilidad * pesos_prioridad["peso_vulnerabilidad"]
             + indice_brecha * pesos_prioridad["peso_brecha"]
-            + np.random.normal(0, 4)
+            + rng.normal(0, ruido_puntaje)
         )
         puntaje_prioridad = round(
             float(limitar(puntaje_prioridad, 0, 100)),
@@ -529,13 +617,23 @@ def main():
         registros.append(registro)
 
     df = pd.DataFrame(registros)
+    df["split"] = asignar_split(rng, len(df), proporciones_split)
+
+    validar_catalogos(df, catalogos)
 
     OUTPUT_DIR.mkdir(exist_ok=True)
     ruta_completo = OUTPUT_DIR / "dataset_completo.csv"
     ruta_ml = OUTPUT_DIR / "dataset_ml.csv"
 
+    columnas_features = [
+        col
+        for col in df.columns
+        if col not in COL_BORRAR_ML and col not in ORDEN_TARGETS
+    ]
+    columnas_ml = columnas_features + ORDEN_TARGETS
+
     df.to_csv(ruta_completo, index=False, encoding="utf-8-sig")
-    df.drop(columns=COL_BORRAR_ML).to_csv(
+    df[columnas_ml].to_csv(
         ruta_ml,
         index=False,
         encoding="utf-8-sig",
@@ -547,15 +645,26 @@ def main():
     print(f"Semilla: {semilla}")
     print(f"Registros: {len(df)}")
     print(f"Columnas completas: {len(df.columns)}")
-    print(f"Columnas ML: {len(df.columns) - len(COL_BORRAR_ML)}")
+    print(f"Columnas ML: {len(columnas_ml)}")
     print(f"Departamentos: {df['departamento'].nunique()}")
     print(f"Municipios distintos: {df['municipio'].nunique()}")
+    print(f"Ruido del puntaje (std): {ruido_puntaje}")
 
     print("\nDistribucion de prioridades:")
     conteo = df["prioridad"].value_counts().sort_index()
     porcentaje = (conteo / len(df) * 100).round(2)
     for clase in conteo.index:
         print(f"  {clase:<10} {conteo[clase]:>6}  ({porcentaje[clase]}%)")
+
+    print("\nEstadisticos de indices:")
+    for col in ["indice_necesidad", "indice_acceso",
+                "indice_vulnerabilidad", "indice_brecha",
+                "puntaje_prioridad"]:
+        print(f"  {col:<22} {resumen_indice(df[col])}")
+
+    print("\nRegistros por split:")
+    for nombre, cantidad in df["split"].value_counts().items():
+        print(f"  {nombre:<6} {cantidad:>6}  ({cantidad / len(df) * 100:.1f}%)")
 
     print("\nDepartamentos con mas registros:")
     print(
@@ -572,13 +681,14 @@ def main():
         .to_string()
     )
 
-    leakage = [
-        col
-        for col in COL_BORRAR_ML
-        if col in pd.read_csv(ruta_ml, nrows=0).columns
-    ]
+    columnas_ml_leidas = pd.read_csv(ruta_ml, nrows=0).columns
+    leakage = [col for col in COL_BORRAR_ML if col in columnas_ml_leidas]
+    nulos = int(df[columnas_ml].isna().sum().sum())
     print(f"\nColumnas filtradas del ML: {COL_BORRAR_ML}")
     print(f"Leakage detectado en dataset_ml: {leakage or 'ninguno'}")
+    print(f"Valores nulos en dataset_ml: {nulos}")
+    print(f"Target de regresion: puntaje_prioridad")
+    print(f"Target categorico: prioridad")
     print("\nArchivos creados:")
     print(f"  {ruta_completo.relative_to(BASE_DIR)}")
     print(f"  {ruta_ml.relative_to(BASE_DIR)}")
