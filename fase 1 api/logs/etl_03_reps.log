@@ -1,0 +1,6 @@
+Descargando REPS agregado (c36g-9fc2) ...
+  pagina 1: +2,854 (acumulado 2,854)
+OK -> reps_sedes_detalle.csv (2,854 filas)
+OK -> reps_sedes_municipio.csv: 1,122 municipios | sin sede: 30 | total sedes: 52,025
+   valores 'ese': ['NO', 'SI']
+   valores 'claseprestador': ['INSTITUCIONES PRESTADORAS DE SERVICIOS DE SALUD - IPS', 'OBJETO SOCIAL DIFERENTE A LA PRESTACIÓN DE SERVICIOS DE SALUD', 'PROFESIONAL INDEPENDIENTE', 'TRANSPORTE ESPECIAL DE PACIENTES']

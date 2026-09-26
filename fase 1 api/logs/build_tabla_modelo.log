@@ -1,0 +1,18 @@
+OK -> municipio_anio.csv: 5,610 filas x 53 columnas
+   municipios: 1,122 | anios: 2017-2021
+   sin RIPS: 300 filas | poblacion desconocida: 0
+   brecha_consultas: media=0.733 | umbral_prioridad=0.842 | prioridad_alta=1,777
+OK -> municipio_anio.csv: 5,610 filas x 51 columnas
+   municipios: 1,122 | anios: 2017-2021
+   sin RIPS: 300 filas | poblacion desconocida: 0
+   brecha_consultas: media=0.733 | umbral_prioridad=0.842 | prioridad_alta=1,777
+OK -> municipio_anio.csv: 5,610 filas x 52 columnas
+   municipios: 1,122 | anios: 2017-2021
+   sin RIPS: 300 filas | poblacion desconocida: 0
+   brecha_consultas: media=0.762 | umbral_prioridad=0.864 | prioridad_alta=1,869
+OK -> municipio_anio.csv: 5,610 filas x 57 columnas
+   municipios: 1,122 | anios: 2017-2021
+   sin RIPS: 300 filas | poblacion desconocida: 0
+   brecha_consultas (pares): media=0.249 | umbral_prioridad=0.337 | prioridad_alta=1,798
+   brecha_nacional (legacy): media=0.429
+   hubs (tasa >= 3x mediana de su banda): 211 filas | 135 municipios

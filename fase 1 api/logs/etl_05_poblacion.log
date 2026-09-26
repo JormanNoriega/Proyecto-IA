@@ -1,0 +1,10 @@
+ADVERTENCIA: no hay serie municipal del DANE en data/raw. Se usara BDUA (snapshot).
+  BDUA SUBSIDIADO (d7a5-cnra): afiliados por municipio ...
+  BDUA CONTRIBUTIVO (tq4m-hmg2): afiliados por municipio ...
+OK (BDUA) -> poblacion_municipio.csv: 1,122 municipios | sin datos: 56 | poblacion total: 46,511,058
+  DANE municipal: PPED-AreaMun-2018-2042_VP.xlsx / hoja 'PobMunicipalxÁrea' (84,234 filas)
+  975 filas sin dato directo (p.ej. 2017): completadas con el anio mas cercano
+OK (DANE) -> poblacion_municipio_anio.csv: 4,875 filas | 975 municipios | poblacion 2021: 41,653,201
+  DANE municipal: PPED-AreaMun-2018-2042_VP.xlsx / hoja 'PobMunicipalxÁrea' (84,234 filas)
+  1,123 filas sin dato directo (p.ej. 2017): completadas con el anio mas cercano
+OK (DANE) -> poblacion_municipio_anio.csv: 5,615 filas | 1,123 municipios | poblacion 2021: 51,115,637

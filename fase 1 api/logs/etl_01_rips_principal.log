@@ -1,0 +1,5 @@
+Descargando RIPS principal (4k9h-8qiu) ...
+  pagina 1: +21,260 (acumulado 21,260)
+OK -> rips_municipio_anio_tipo.csv (21,260 filas)
+OK -> rips_municipio_anio_tipo.csv: 21,260 filas | 1,073 municipios | 2017-2021
+   tipos: ['CONSULTAS', 'HOSPITALIZACIONES', 'PROCEDIMIENTOS DE SALUD', 'URGENCIAS']

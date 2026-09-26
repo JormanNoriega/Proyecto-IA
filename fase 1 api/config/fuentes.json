@@ -1,0 +1,23 @@
+{
+  "dominio": "https://www.datos.gov.co",
+  "anios": ["2017", "2018", "2019", "2020", "2021"],
+  "page_size": 100000,
+  "datasets": {
+    "divipola": "gdxc-w37w",
+    "rips": "4k9h-8qiu",
+    "reps": "c36g-9fc2",
+    "resguardos": "epzt-64uw",
+    "comunidades": "fmd2-kgwe",
+    "bdua_subsidiado": "d7a5-cnra",
+    "bdua_contributivo": "tq4m-hmg2"
+  },
+  "archivos": {
+    "poblacion_dane_municipal": "data/raw/PPED-Municipal-2018-2042.xlsx",
+    "poblacion_dane_nacional": "data/raw/PPED-AreaNac-2018-2070.xlsx",
+    "socioeconomico": "data/raw/socioeconomico.csv"
+  },
+  "target": {
+    "tipo_principal": "CONSULTAS",
+    "benchmark": "nacional"
+  }
+}

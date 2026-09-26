@@ -1,0 +1,16 @@
+Descargando RIPS diagnostico por capitulo (4k9h-8qiu) ...
+  pagina 1: +100,000 (acumulado 100,000)
+  pagina 2: +35,586 (acumulado 135,586)
+OK -> rips_municipio_anio_capitulo.csv (135,586 filas)
+OK -> rips_municipio_anio_capitulo.csv: 135,586 filas | 27 capitulos | 1,073 municipios
+   capitulos: ['1', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+Descargando RIPS diagnostico por capitulo (4k9h-8qiu) ...
+  pagina 1: +100,000 (acumulado 100,000)
+  pagina 2: +31,628 (acumulado 131,628)
+OK -> rips_municipio_anio_capitulo.csv (131,628 filas)
+OK -> rips_municipio_anio_capitulo.csv: 131,628 filas | 27 capitulos | 1,072 municipios
+   capitulos: ['1', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+Descargando RIPS perfil de diagnostico (4k9h-8qiu) ...
+  pagina 1: +27,638 (acumulado 27,638)
+OK -> rips_municipio_capitulo.csv (27,638 filas)
+OK -> rips_municipio_capitulo.csv: 27,624 filas | 26 capitulos | 1,072 municipios

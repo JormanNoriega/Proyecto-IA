@@ -1,0 +1,24 @@
+============================================================
+ETL RIPS (API datos.gov.co) -> dataset EDA
+============================================================
+Endpoint: https://www.datos.gov.co/api/v3/views/4k9h-8qiu/query.json
+Años: ['2017', '2018', '2019', '2020', '2021']  |  page_size=200,000  |  salida=10,000  |  max_paginas=None
+Filas crudas en el dataset: 38,000,000
+Filas crudas en 2017-2021 : 18,164,950
+
+Descargando dataset PRINCIPAL (municipio x anio x tipo) ...
+  pagina   1: +21,260  (acumulado 21,260)
+Principal agregado: 21,240 filas
+
+Descargando dataset DIAGNOSTICO (depto x anio x tipo x diagnostico) ...
+  pagina   1: +200,000  (acumulado 200,000)
+  pagina   2: +200,000  (acumulado 400,000)
+  pagina   3: +200,000  (acumulado 600,000)
+  pagina   4: +200,000  (acumulado 800,000)
+  pagina   5: +200,000  (acumulado 1,000,000)
+  pagina   6: +200,000  (acumulado 1,200,000)
+  pagina   7: +200,000  (acumulado 1,400,000)
+  pagina   8: +200,000  (acumulado 1,600,000)
+  pagina   9: +200,000  (acumulado 1,800,000)
+  pagina  10: +200,000  (acumulado 2,000,000)
+  pagina  11: +200,000  (acumulado 2,200,000)
