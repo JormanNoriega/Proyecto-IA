@@ -1,4 +1,4 @@
-"""Utilidades compartidas del pipeline de datos y modelos (SODA 3.0, normalizacion, logging, rutas)."""
+"""Utilidades compartidas del pipeline de Fase 1 (SODA 3.0, normalizacion, logging, rutas)."""
 from __future__ import annotations
 
 import json
@@ -15,16 +15,16 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 def _find_base_dir() -> Path:
-    """Encuentra la raíz del proyecto 'fase 1 api' buscando 'config/fuentes.json' o 'data' hacia arriba."""
+    """Encuentra la raíz de 'fase 1 api' buscando 'config/fuentes.json' o 'data/modelo' hacia arriba."""
     curr = Path(__file__).resolve()
     while curr != curr.parent:
         if (curr / "config" / "fuentes.json").exists() or (curr / "data" / "modelo").exists():
             return curr
         curr = curr.parent
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
-BASE_DIR = _find_base_dir()
+BASE_DIR = _find_base_dir()  # fase 1 api
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
@@ -103,7 +103,6 @@ def fetch_agregado(
     max_paginas: int | None = None,
     reanudar: bool = True,
 ) -> int:
-    """Descarga un agregado paginando con LIMIT/OFFSET y escribe por lotes (append + checkpoint)."""
     page_size = page_size or int(config().get("page_size", 100000))
     salida = Path(salida)
     ckpt = Path(str(salida) + ".ckpt")
@@ -164,7 +163,6 @@ def llave_norm(departamento, municipio) -> str:
 
 
 def separa_codigo(valor) -> tuple[str | None, str | None]:
-    """Separa '05001 - Medellin' -> ('05001', 'Medellin')."""
     if valor is None:
         return None, None
     if isinstance(valor, float) and pd.isna(valor):

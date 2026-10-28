@@ -16,12 +16,8 @@ import pandas as pd
 from scipy.optimize import LinearConstraint, milp
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import BASE_DIR, MODEL_DIR, get_logger  # noqa: E402
+from common import BASE_DIR, MODEL_DIR, MODELOS_DIR, REPORTES_DIR, get_logger  # noqa: E402
 from modelado import FEATURES
-
-FASE2_DIR = BASE_DIR / "fase 2"
-MODELOS_DIR = FASE2_DIR / "modelos"
-REPORTES_DIR = FASE2_DIR / "reportes"
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

@@ -27,11 +27,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import BASE_DIR, LOG_DIR, MODEL_DIR, get_logger  # noqa: E402
-
-FASE2_DIR = BASE_DIR / "fase 2"
-MODELOS_DIR = FASE2_DIR / "modelos"
-REPORTES_DIR = FASE2_DIR / "reportes"
+from common import BASE_DIR, LOG_DIR, MODEL_DIR, MODELOS_DIR, REPORTES_DIR, get_logger  # noqa: E402
 
 for _d in (MODELOS_DIR, REPORTES_DIR):
     _d.mkdir(parents=True, exist_ok=True)

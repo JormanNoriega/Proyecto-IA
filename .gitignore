@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Virtual Environments
+env/
+venv/
+ENV/
+
+# Checkpoints y archivos temporales
+*.ckpt
+*.tmp
+
+# Archivos comprimidos de respaldo
+*.rar
+*.zip
+*.tar.gz
+
+# VS Code / IDE
+.vscode/
+.idea/
