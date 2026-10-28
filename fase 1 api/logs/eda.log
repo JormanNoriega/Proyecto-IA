@@ -452,3 +452,182 @@ prioridad_alta               0.904
 brecha_consultas             1.000
 
 (reporte mostrado en consola -> C:\Users\jorma\Desktop\IA\Proyecto IA\fase 1 api\logs\eda_resumen.txt)
+Tabla: 5,610 filas x 73 columnas
+
+== Nulos por columna (solo con nulos) ==
+pct_cap_A                    300
+pct_cap_B                    295
+pct_cap_C                    300
+pct_cap_D                    285
+pct_cap_E                    295
+pct_cap_F                    290
+pct_cap_G                    295
+pct_cap_H                    295
+pct_cap_I                    290
+pct_cap_J                    285
+pct_cap_K                    290
+pct_cap_L                    295
+pct_cap_M                    290
+pct_cap_N                    300
+pct_cap_O                    290
+pct_cap_P                    325
+pct_cap_Q                    310
+pct_cap_R                    290
+pct_cap_S                    285
+pct_cap_T                    290
+pct_cap_U                    350
+pct_cap_V                    525
+pct_cap_W                    310
+pct_cap_X                    335
+pct_cap_Y                    320
+pct_cap_Z                    285
+consultas_1000hab              5
+urgencias_1000hab              5
+hosp_1000hab                   5
+proced_1000hab                 5
+ratio_consultas_urgencias    313
+sedes_10k_hab                  5
+brecha_consultas               5
+brecha_global                  5
+brecha_nacional                5
+es_hub                         5
+prioridad_alta               216
+
+== RIPS presente ==
+  filas con RIPS: 5,310 / 5,610 (94.7%)
+
+== consultas_1000hab: percentiles ==
+count     5310.00
+mean      1856.82
+std       1470.92
+min          0.00
+10%        432.64
+25%        852.35
+50%       1543.81
+75%       2490.40
+90%       3602.87
+99%       6604.18
+max      25007.97
+
+== Correlacion consultas_1000hab vs poblacion (sospecha 'prestador') ==
+  pearson=0.095 | spearman=0.198
+
+== Top 10 municipios por consultas_1000hab (2021) ==
+cod_mpio          nom_mpio  poblacion  consultas  consultas_1000hab  brecha_consultas
+   68682       SAN JOAQUÍN     2428.0      30861           12710.46               0.0
+   15104            BOYACÁ     5233.0      60778           11614.37               0.0
+   52520 FRANCISCO PIZARRO    14984.0     131713            8790.24               0.0
+   25307          GIRARDOT   102742.0     822170            8002.28               0.0
+   68245      EL GUACAMAYO     2211.0      16828            7611.04               0.0
+   68322           GUAPOTÁ     2561.0      19414            7580.63               0.0
+   68217          COROMORO     5459.0      39982            7324.05               0.0
+   68686        SAN MIGUEL     2653.0      18360            6920.47               0.0
+   25258          EL PEÑÓN     4733.0      31476            6650.33               0.0
+   41132       CAMPOALEGRE    31608.0     205188            6491.65               0.0
+
+== Bottom 10 municipios por consultas_1000hab (2021) ==
+cod_mpio               nom_mpio  poblacion  consultas  consultas_1000hab  brecha_consultas
+   85001                  YOPAL   182573.0          0               0.00            1.0000
+   85430               TRINIDAD    13779.0        136               9.87            0.9919
+   85279                RECETOR     1710.0         34              19.88            0.9844
+   05647 SAN ANDRÉS DE CUERQUÍA     7392.0        276              37.34            0.9670
+   13458            MONTECRISTO    16641.0        739              44.41            0.9636
+   15774                SUSACÓN     2773.0        167              60.22            0.9529
+   05642                 SALGAR    18784.0       1133              60.32            0.9596
+   85010                AGUAZUL    38537.0       2369              61.47            0.9677
+   52427                  MAGÜÍ    26548.0       1633              61.51            0.9588
+   85263                   PORE    12847.0        805              62.66            0.9487
+
+== Hubs (marcados; excluidos del ranking) ==
+  filas hub: 211 | municipios: 135
+cod_mpio          nom_mpio  poblacion  consultas_1000hab  brecha_consultas
+   68682       SAN JOAQUÍN     2428.0           12710.46               0.0
+   15104            BOYACÁ     5233.0           11614.37               0.0
+   52520 FRANCISCO PIZARRO    14984.0            8790.24               0.0
+   25307          GIRARDOT   102742.0            8002.28               0.0
+   68245      EL GUACAMAYO     2211.0            7611.04               0.0
+   68322           GUAPOTÁ     2561.0            7580.63               0.0
+   68217          COROMORO     5459.0            7324.05               0.0
+   68686        SAN MIGUEL     2653.0            6920.47               0.0
+
+== brecha_consultas (pares) por anio ==
+       mean  median    std
+a_o                       
+2017  0.218     0.0  0.295
+2018  0.212     0.0  0.292
+2019  0.188     0.0  0.264
+2020  0.205     0.0  0.283
+2021  0.213     0.0  0.291
+
+== Correlaciones con brecha_consultas ==
+consultas_1000hab           -0.615
+proced_1000hab              -0.475
+hosp_1000hab                -0.386
+urgencias_1000hab           -0.329
+pct_cap_E                   -0.192
+es_hub                      -0.148
+pct_cap_M                   -0.146
+pct_cap_N                   -0.109
+sedes_10k_hab               -0.109
+pct_cap_G                   -0.102
+pct_cap_I                   -0.099
+ratio_consultas_urgencias   -0.095
+urgencias                   -0.091
+pct_cap_F                   -0.087
+consultas                   -0.085
+pct_cap_H                   -0.084
+atenciones_total            -0.084
+procedimientos              -0.080
+hospitalizaciones           -0.075
+n_sedes                     -0.058
+poblacion                   -0.052
+n_sedes_ese                 -0.051
+pct_cap_Q                   -0.045
+bench_consultas             -0.030
+bench_global                -0.026
+pct_cap_W                   -0.020
+longitud                    -0.020
+a_o                         -0.008
+pct_cap_K                   -0.003
+pct_cap_A                   -0.000
+n_comunidades                0.004
+banda_pob                    0.005
+pct_cap_Y                    0.015
+pct_cap_J                    0.033
+pct_cap_U                    0.037
+pct_cap_C                    0.046
+pct_cap_D                    0.047
+pob_resguardos               0.054
+latitud                      0.059
+pct_cap_R                    0.059
+pct_cap_B                    0.059
+pct_cap_T                    0.069
+pct_cap_V                    0.071
+pct_cap_S                    0.075
+pct_cap_L                    0.077
+pct_cap_P                    0.091
+pct_cap_X                    0.096
+nbi_rural_hacinamiento       0.124
+nbi_rural_vivienda           0.126
+pct_cap_Z                    0.129
+nbi_rural_inasistencia       0.130
+nbi_vivienda                 0.130
+n_resguardos                 0.140
+pct_rural_disperso           0.152
+nbi_hacinamiento             0.153
+nbi_rural_dependencia        0.177
+nbi_inasistencia             0.180
+nbi_rural_miseria            0.200
+nbi_dependencia              0.212
+nbi_rural                    0.215
+nbi_rural_servicios          0.222
+pct_cap_O                    0.226
+nbi_miseria                  0.229
+nbi_servicios                0.232
+nbi_total                    0.244
+brecha_global                0.833
+brecha_nacional              0.858
+prioridad_alta               0.904
+brecha_consultas             1.000
+
+(reporte mostrado en consola -> C:\Users\jorma\Desktop\IA\Proyecto IA\fase 1 api\logs\eda_resumen.txt)
