@@ -1,4 +1,4 @@
-"""Utilidades compartidas del pipeline de datos (SODA 3.0, normalizacion, logging)."""
+"""Utilidades compartidas del pipeline de datos y modelos (SODA 3.0, normalizacion, logging, rutas)."""
 from __future__ import annotations
 
 import json
@@ -13,7 +13,18 @@ import requests
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+
+def _find_base_dir() -> Path:
+    """Encuentra la raíz del proyecto 'fase 1 api' buscando 'config/fuentes.json' o 'data' hacia arriba."""
+    curr = Path(__file__).resolve()
+    while curr != curr.parent:
+        if (curr / "config" / "fuentes.json").exists() or (curr / "data" / "modelo").exists():
+            return curr
+        curr = curr.parent
+    return Path(__file__).resolve().parent.parent
+
+
+BASE_DIR = _find_base_dir()
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
@@ -25,7 +36,10 @@ for _d in (RAW_DIR, PROCESSED_DIR, MODEL_DIR, LOG_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
 _SESSION = requests.Session()
-_SESSION.headers.update({"Accept": "application/json"})
+_SESSION.headers.update({
+    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+})
 _CONFIG: dict | None = None
 
 

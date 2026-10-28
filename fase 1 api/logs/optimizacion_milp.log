@@ -1,0 +1,15 @@
+============================================================
+COMPONENTE PRESCRIPTIVO: OPTIMIZACIÓN LINEAL ENTERA MIXTA (MILP)
+============================================================
+Candidatos para asignación: 25 municipios en Dpto 20
+Brigadas disponibles: 4 | Base GPS: (10.4605, -73.2594)
+Optimización completada exitosamente. Brigadas asignadas: 4
+
+PLAN OPERATIVO ÓPTIMO DE DESPACHO:
+    nom_mpio  prob_prioridad_ia  pob_vulnerable  distancia_base_km  n_resguardos  nbi_rural   numero_brigada
+PUEBLO BELLO           0.369447     29861.00096              36.06             2      86.58 Brigada Móvil #1
+    BECERRIL           0.457563      8159.92824              84.10             2      67.18 Brigada Móvil #2
+      ASTREA           0.909211     10298.08272             132.70             0      37.54 Brigada Móvil #3
+ CHIMICHAGUA           0.749610     22329.08806             146.76             0      30.02 Brigada Móvil #4
+
+OK -> Plan de despacho guardado en asignacion_brigadas_optima.csv

@@ -1,0 +1,38 @@
+[
+  {
+    "Modelo": "Dummy Baseline",
+    "Accuracy": 0.661,
+    "Precision": 0.0,
+    "Recall": 0.0,
+    "F1-Score": 0.0,
+    "ROC-AUC": 0.5,
+    "PR-AUC": 0.339
+  },
+  {
+    "Modelo": "Regresi\u00f3n Log\u00edstica",
+    "Accuracy": 0.6573,
+    "Precision": 0.4952,
+    "Recall": 0.5596,
+    "F1-Score": 0.5254,
+    "ROC-AUC": 0.692,
+    "PR-AUC": 0.5926
+  },
+  {
+    "Modelo": "Random Forest (Optimizado)",
+    "Accuracy": 0.7283,
+    "Precision": 0.6211,
+    "Recall": 0.509,
+    "F1-Score": 0.5595,
+    "ROC-AUC": 0.7653,
+    "PR-AUC": 0.6803
+  },
+  {
+    "Modelo": "HistGradientBoosting",
+    "Accuracy": 0.7797,
+    "Precision": 0.7413,
+    "Recall": 0.5379,
+    "F1-Score": 0.6234,
+    "ROC-AUC": 0.7848,
+    "PR-AUC": 0.7414
+  }
+]
