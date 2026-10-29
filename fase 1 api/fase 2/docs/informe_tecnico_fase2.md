@@ -21,7 +21,7 @@ Este documento presenta los avances técnicos y metodológicos correspondientes 
 
 A partir de un pipeline automatizado de extracción de datos abiertos del Ministerio de Salud (RIPS y REPS), DANE (Censo 2018 NBI y proyecciones poblacionales) y Ministerio del Interior (Resguardos Indígenas), se consolidó un dataset en formato panel de **5.610 observaciones** (1.122 municipios $\times$ 5 años: 2017–2021) con **74 variables**, incluyendo coordenadas GPS oficiales al 100%.
 
-Se implementó una partición estratificada **70% Entrenamiento, 15% Validación y 15% Prueba** agrupada por municipio (`cod_mpio`) para erradicar cualquier fuga de datos temporal. Se entrenaron y compararon cuatro enfoques algorítmicos con ajuste sistemático de hiperparámetros. El modelo **HistGradientBoosting** alcanzó el mejor rendimiento global con un **F1-Score de 0.6234**, **ROC-AUC de 0.7848** y **Accuracy de 77.97%** en el conjunto de prueba ciego. Finalmente, se formuló y resolvió un modelo prescriptivo de **Programación Lineal Entera Mixta (MILP)** con distancias Haversine que genera el plan de despacho óptimo de unidades médicas móviles minimizando costos logísticos y maximizando el impacto sanitario.
+Se implementó una partición **70% Entrenamiento, 15% Validación y 15% Prueba** agrupada por municipio (`cod_mpio`), de modo que ningún municipio del conjunto de prueba fue observado durante el entrenamiento. El conjunto de validación quedó reservado y no se utilizó en esta iteración. Se entrenaron y compararon cuatro enfoques algorítmicos con ajuste sistemático de hiperparámetros. El modelo **HistGradientBoosting** alcanzó el mejor rendimiento global con un **F1-Score de 0.6234**, **ROC-AUC de 0.7848** y **Accuracy de 77.97%** en el conjunto de prueba ciego. Finalmente, se formuló y resolvió un modelo prescriptivo de **Programación Lineal Entera Mixta (MILP)** con distancias Haversine que genera el plan de asignación de unidades médicas móviles maximizando la cobertura de vulnerabilidad y penalizando la distancia recorrida.
 
 ---
 
@@ -29,7 +29,7 @@ Se implementó una partición estratificada **70% Entrenamiento, 15% Validación
 
 ### 2.1 Fuentes Oficiales Integradas
 * **DIVIPOLA (`gdxc-w37w`):** Catálogo maestro de 1.122 municipios con centroides geográficos (`latitud`, `longitud`) decimales corregidos.
-* **RIPS (`4k9h-8qiu`):** Agregación de más de 18 millones de atenciones en consultas, urgencias, hospitalizaciones y procedimientos entre 2017 y 2021, desagregadas en 26 capítulos diagnósticos CIE-10 (`pct_cap_A` a `pct_cap_Z`).
+* **RIPS (`4k9h-8qiu`):** Agregación de más de 1.800 millones de atenciones (consultas, procedimientos, urgencias y hospitalizaciones) entre 2017 y 2021, desagregadas en 26 capítulos diagnósticos CIE-10 (`pct_cap_A` a `pct_cap_Z`).
 * **REPS (`c36g-9fc2`):** Capacidad fija instalada (sedes habilitadas totales y sedes de la red pública ESE).
 * **Contexto Étnico (`epzt-64uw`, `fmd2-kgwe`):** Presencia y población de resguardos indígenas y comunidades fuera de resguardo.
 * **Pobreza Multidimensional DANE (Censo 2018):** 14 variables de Necesidades Básicas Insatisfechas, haciendo énfasis en el indicador específico de **Centros Poblados y Rural Disperso** (`nbi_rural`, `nbi_rural_miseria`, `nbi_rural_servicios`).
@@ -49,16 +49,25 @@ Para evitar la autocorrelación intra-municipal entre años consecutivos, la div
 * **Validation (15%):** 168 municipios (840 filas, 807 válidas).
 * **Test (15%):** 169 municipios (845 filas, 817 válidas).
 
+> **Nota metodológica.** El test es ciego a nivel municipal, pero la validación cruzada interna de `GridSearchCV` utiliza una partición aleatoria de filas (no agrupada por municipio) y la imputación de medianas se calcula sobre el conjunto completo antes de separar. Ambas prácticas se reconocen como limitaciones y se corrigen en la Fase 3 con `StratifiedGroupKFold` e imputación ajustada solo con train.
+
 ---
 
 ## 3. Desarrollo y Comparación de Modelos de Machine Learning
 
-Se evaluaron 4 modelos representativos con calibración de hiperparámetros mediante `GridSearchCV` sobre 3 folds en el conjunto de entrenamiento:
+Se evaluaron cuatro modelos representativos. El Random Forest y el HistGradientBoosting se calibraron con `GridSearchCV` (3 pliegues, criterio F1-Score) sobre 12 y 24 combinaciones respectivamente; la Regresión Logística se empleó como línea base lineal sin búsqueda de hiperparámetros:
 
-1. **Dummy Baseline:** Clasificador trivial por clase mayoritaria.
-2. **Regresión Logística:** Modelo lineal estandarizado con regularización L2 y ponderación de clases balanceada (`class_weight='balanced'`).
-3. **Random Forest:** Ensamble de 200 árboles de decisión (`n_estimators=200`, `max_depth=6`, `min_samples_split=2`).
-4. **HistGradientBoosting:** Algoritmo basado en árboles de regresión de gradiente con discretización en bins (`learning_rate=0.15`, `max_iter=100`, `max_leaf_nodes=15`, `min_samples_leaf=20`).
+1. **Dummy Baseline:** Clasificador trivial por clase mayoritaria (`strategy='most_frequent'`).
+2. **Regresión Logística:** Modelo lineal estandarizado con regularización L2 y ponderación de clases balanceada (`class_weight='balanced'`, `max_iter=1000`).
+3. **Random Forest:** Ensamble de bagging optimizado (`n_estimators=200`, `max_depth=6`, `min_samples_split=2`, `class_weight='balanced'`).
+4. **HistGradientBoosting:** Boosting de gradiente con discretización en bins (`learning_rate=0.15`, `max_iter=100`, `max_leaf_nodes=15`, `min_samples_leaf=20`).
+
+**Espacio de búsqueda evaluado:**
+
+| Modelo | Malla | Mejor configuración |
+| :--- | :--- | :--- |
+| Random Forest | `n_estimators` ∈ {100, 200}; `max_depth` ∈ {6, 10, sin límite}; `min_samples_split` ∈ {2, 5}; `class_weight` = balanced | 200 árboles, profundidad 6, `min_samples_split=2` |
+| HistGradientBoosting | `learning_rate` ∈ {0.03, 0.08, 0.15}; `max_iter` ∈ {100, 150}; `max_leaf_nodes` ∈ {15, 31}; `min_samples_leaf` ∈ {20, 40} | Tasa 0.15, 100 iteraciones, 15 hojas, 20 muestras mínimas por hoja |
 
 ### 3.1 Resultados Cuantitativos en el Conjunto de Prueba Ciego (Test Set)
 
@@ -71,19 +80,32 @@ Se evaluaron 4 modelos representativos con calibración de hiperparámetros medi
 
 ### 3.2 Hallazgos de Modelado
 * **Superación del Baseline:** `HistGradientBoosting` incrementó el F1-Score desde 0.0 hasta 0.6234 y el área bajo la curva Precision-Recall (PR-AUC) de 0.3390 a 0.7414.
-* **Precisión en Positivos:** Con una precisión de **74.1%**, 3 de cada 4 municipios clasificados en prioridad alta realmente padecen un déficit crítico de salud, minimizando el despilfarro de brigadas en zonas no prioritarias.
-* **Importancia de Variables (Gini):** Las variables más determinantes del modelo fueron:
-  1. `% Población en Centros Poblados y Rural Disperso` (DANE).
-  2. `NBI Rural Disperso` y `Miseria Rural`.
-  3. `Sedes de salud por 10.000 habitantes` (Capacidad instalada REPS).
-  4. `Población total` y `Población en resguardos indígenas`.
-  5. `Capítulo CIE-10 O (Embarazo, parto y puerperio)`: indicador de alta demanda gineco-obstétrica insatisfecha.
+* **Precisión y Recall:** Con una precisión de **74.1%**, aproximadamente 3 de cada 4 registros municipio–año clasificados como prioritarios corresponden efectivamente a un déficit crítico. Sin embargo, el recall es de **53.8%**: cerca del 46% de los registros realmente prioritarios no se detectan con el umbral de 0.5, por lo que el modelo debe operar como apoyo a la decisión y no como filtro único.
+* **Importancia de Variables (Gini):** El ranking real del Random Forest optimizado es:
+  1. `pct_cap_O` — Capítulo CIE-10 O, embarazo, parto y puerperio (0.112).
+  2. `pob_resguardos` — Población en resguardos indígenas (0.091).
+  3. `nbi_servicios` — Carencias en servicios básicos (0.085).
+  4. `nbi_rural_servicios` — Las mismas carencias en rural disperso (0.059).
+  5. `pct_cap_A` — Capítulo CIE-10 A, infecciosas y parasitarias (0.049).
+  
+  Agregadas por bloque, las once variables de NBI concentran ≈42% de la importancia total, los capítulos CIE-10 ≈26%, las variables étnicas ≈12%, geografía y demografía ≈15% y la capacidad instalada REPS ≈5%. `pct_rural_disperso` ocupa el puesto 13 y `sedes_10k_hab` el 21. La importancia Gini no implica causalidad y el modelo empleado para el despacho es el HistGradientBoosting.
+
+### 3.3 Análisis de Errores y Limitaciones
+La matriz de confusión del modelo final sobre las 817 observaciones de prueba registra **488 verdaderos negativos, 52 falsos positivos, 128 falsos negativos y 149 verdaderos positivos**. El error dominante son los falsos negativos, coherente con el recall de 53.8%.
+
+Limitaciones identificadas:
+* **Validación no utilizada:** el conjunto de validación quedó reservado; no se calibró el umbral de decisión ni se aplicó *early stopping*.
+* **CV interna no agrupada:** `GridSearchCV` usa `KFold` simple, por lo que un mismo municipio puede aparecer en entrenamiento y validación de la búsqueda.
+* **Imputación global:** las medianas se calculan antes de separar los conjuntos, lo que introduce una fuga leve.
+* **Distancia Haversine:** la distancia es ortodrómica, no por carretera.
+* **Cobertura temporal:** el panel cubre 2017–2021 y no incorpora años posteriores.
+* **Sin restricción presupuestal explícita:** el MILP modela la flota (`K`), la cuota de resguardos (`M`) y la autonomía (`D_max`), pero no un presupuesto monetario.
 
 ---
 
 ## 4. Componente Prescriptivo: Optimización MILP de Despacho
 
-Para cumplir con el **Objetivo Específico #4** de la propuesta, se formuló un modelo de **Programación Lineal Entera Mixta (MILP)** que toma las probabilidades continuas generadas por el modelo de IA y calcula el ruteo óptimo para una flota de brigadas médicas.
+Para cumplir con el **Objetivo Específico #4** de la propuesta, se formuló un modelo de **Programación Lineal Entera Mixta (MILP)** que toma las probabilidades continuas generadas por el modelo de IA y calcula la asignación óptima para una flota de brigadas médicas.
 
 ### 4.1 Formulación Matemática
 Sea $x_i \in \{0, 1\}$ la variable binaria que indica si se asigna una brigada móvil al municipio $i$.
@@ -98,6 +120,8 @@ Donde:
 * $V_i$: Población vulnerable (rural dispersa + resguardos).
 * $d_i$: Distancia ortodrómica (Haversine) en km desde el hospital base.
 * $\lambda$: Factor de penalización por costo de combustible y tiempo de traslado ($\lambda = 0.005$).
+
+Para el ejercicio piloto se adoptaron $K = 4$ brigadas, $M = 2$ municipios con resguardos como cuota mínima y $D_{\max} = 350$ km de autonomía.
 
 ### 4.2 Demostración Operativa en el Departamento del Cesar
 Tomando como base de operaciones la ciudad de **Valledupar** (Hospital Rosario Pumarejo de López: $10.4605^\circ\text{N}, -73.2594^\circ\text{W}$) y una flota de $K = 4$ brigadas móviles, el solver HiGHS generó el siguiente plan de despacho óptimo:
@@ -116,22 +140,23 @@ Tomando como base de operaciones la ciudad de **Valledupar** (Hospital Rosario P
 ## 5. Artefactos y Entregables Generados
 
 Todos los productos de la Fase 2 quedaron estructurados en el repositorio:
-1. **Script de Modelado:** [fase 1 api/fase 2/src/modelado.py](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/src/modelado.py).
-2. **Script de Optimización:** [fase 1 api/fase 2/src/optimizacion_milp.py](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/src/optimizacion_milp.py).
-3. **Modelos Serializados:** Archivos `.joblib` en `fase 1 api/fase 2/modelos/`.
-4. **Reportes y Gráficas de Alta Calidad (300 DPI):**
-   * Curvas ROC: [curva_roc_comparacion.png](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/reportes/curva_roc_comparacion.png).
-   * Matrices de Confusión: [matriz_confusion_modelos.png](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/reportes/matriz_confusion_modelos.png).
-   * Importancia de Variables: [importancia_variables_rf.png](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/reportes/importancia_variables_rf.png).
-   * Métricas Cuantitativas: [metricas_comparacion.json](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/reportes/metricas_comparacion.json).
-   * Plan de Asignación: [asignacion_brigadas_optima.csv](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/reportes/asignacion_brigadas_optima.csv).
-5. **Notebook Demostrativo Interactivo:** [modelado_fase2.ipynb](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/notebooks/modelado_fase2.ipynb).
-6. **Código Fuente del Documento Técnico:** [documento.tex](file:///C:/Users/jorma/Desktop/IA/Proyecto%20IA/fase%201%20api/fase%202/docs/documento.tex).
+1. **Script de Modelado:** [`src/modelado.py`](../src/modelado.py).
+2. **Script de Optimización:** [`src/optimizacion_milp.py`](../src/optimizacion_milp.py).
+3. **Demo de Consulta por Municipio:** [`src/probar_ia.py`](../src/probar_ia.py).
+4. **Modelos Serializados:** Archivos `.joblib` en `fase 2/modelos/`.
+5. **Reportes y Gráficas de Alta Calidad (300 DPI):**
+   * Curvas ROC: [`reportes/curva_roc_comparacion.png`](../reportes/curva_roc_comparacion.png).
+   * Matrices de Confusión: [`reportes/matriz_confusion_modelos.png`](../reportes/matriz_confusion_modelos.png).
+   * Importancia de Variables: [`reportes/importancia_variables_rf.png`](../reportes/importancia_variables_rf.png).
+   * Métricas Cuantitativas: [`reportes/metricas_comparacion.json`](../reportes/metricas_comparacion.json).
+   * Plan de Asignación: [`reportes/asignacion_brigadas_optima.csv`](../reportes/asignacion_brigadas_optima.csv).
+6. **Notebook Demostrativo:** [`notebooks/modelado_fase2.ipynb`](../notebooks/modelado_fase2.ipynb).
+7. **Documento Técnico:** fuente [`documento.tex`](documento.tex) y versión compilada [`documento.pdf`](documento.pdf).
 
 ---
 
 ## 6. Conclusiones y Preparación para la Fase 3
 
-La Fase 2 demostró que la combinación de variables de vulnerabilidad territorial (NBI rural y demografía DANE) con datos de prestación médica (RIPS y REPS) permite predecir con una precisión del 74.1% los municipios en situación de abandono asistencial. 
+La Fase 2 demostró que la combinación de variables de vulnerabilidad territorial (NBI rural y demografía DANE) con datos de prestación médica (RIPS y REPS) permite clasificar los municipios en situación de abandono asistencial con una precisión del 74.1%, un F1-Score de 0.6234 y un ROC-AUC de 0.7848 sobre municipios no observados durante el entrenamiento. El recall de 53.8% delimita el espacio de mejora: el modelo debe operar con revisión humana o con un umbral ajustado.
 
-La integración prescriptiva resuelve la brecha entre el nivel macro-municipal y la toma de decisiones sobre el terreno, dejando el proyecto completamente listo para la **Fase 3: Integración de la Interfaz Web (Streamlit/Folium), Despliegue y Video Pitch**.
+La integración prescriptiva resuelve la brecha entre el nivel macro-municipal y la toma de decisiones sobre el terreno, dejando el proyecto listo para la **Fase 3: Integración de la Interfaz Web (Streamlit/Folium), Despliegue y Video Pitch**. Las prioridades técnicas para esa etapa son: agrupar la validación cruzada por municipio, calcular la imputación solo con train, calibrar el umbral con el conjunto de validación y reemplazar la distancia Haversine por distancia por carretera si se dispone de un servicio de ruteo.
