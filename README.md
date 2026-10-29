@@ -25,13 +25,13 @@ Históricamente, las Secretarías de Salud y las Empresas Sociales del Estado (E
 
 Este proyecto implementa una **solución híbrida de Inteligencia Artificial (Predictiva y Prescriptiva)** que:
 * **Fase Predictiva (Machine Learning):** Identifica y clasifica objetivamente los municipios con déficit crítico de atención ambulatoria frente a sus pares poblacionales.
-* **Fase Prescriptiva (Investigación de Operaciones / MILP):** Optimiza las rutas y el despacho de las brigadas médicas móviles utilizando coordenadas geográficas y restricciones logísticas.
+* **Fase Prescriptiva (Investigación de Operaciones / MILP):** Optimiza la asignación y el despacho de las brigadas médicas móviles utilizando coordenadas geográficas y restricciones logísticas.
 
 ```mermaid
 flowchart TD
     subgraph Fuentes ["1. Fuentes Oficiales de Datos Abiertos"]
         F1["DIVIPOLA (DANE/MinSalud)<br/>1.122 Municipios + Coordenadas GPS"]
-        F2["RIPS 2017-2021 (MinSalud)<br/>18M Registros de Consultas y CIE-10"]
+        F2["RIPS 2017-2021 (MinSalud)<br/>1.800M Atenciones y CIE-10"]
         F3["REPS (MinSalud)<br/>Sedes de Salud y Puestos Públicos ESE"]
         F4["MinInterior<br/>Resguardos y Comunidades Indígenas"]
         F5["DANE (Censo 2018)<br/>NBI Total y NBI Rural Disperso"]
@@ -58,7 +58,7 @@ flowchart TD
 
     subgraph Modelado ["4. Modelado y Optimización"]
         M1["Modelos de ML (Clasificación/Scoring)<br/>Target: prioridad_alta"]
-        M2["Optimización de Rutas (MILP)<br/>Haversine + Ruteo de Brigadas"]
+        M2["Asignación y Despacho (MILP)<br/>Haversine + Priorización de Brigadas"]
         D2 --> M1 --> M2
     end
 ```
@@ -155,27 +155,66 @@ Proyecto IA/
 
 ## 6. Guía de Ejecución y Reproducibilidad
 
-Para reconstruir todo el pipeline de datos desde cero en cualquier entorno Python:
+### 6.1 Requisitos
+
+* **Python 3.11.9** (versión con la que se generaron los modelos `.joblib`).
+* **Git** para clonar el repositorio.
+* Opcional: **MiKTeX** o **TeX Live** solo si se desea recompilar `documento.tex`; el PDF ya está incluido.
+
+Las versiones exactas de las librerías están fijadas en [`fase 1 api/requirements.txt`](fase%201%20api/requirements.txt).
+
+### 6.2 Instalación desde cero (Windows PowerShell)
+
+```powershell
+git clone https://github.com/JormanNoriega/Proyecto-IA.git
+cd "Proyecto-IA\fase 1 api"
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+En Linux/macOS la activación es `source .venv/bin/activate`; el resto de comandos es equivalente.
+
+### 6.3 Reconstruir el pipeline ETL (opcional)
+
+Los datos procesados ya están versionados en `data/`, por lo que este paso **no es necesario** para ejecutar la demo o el modelado. Solo se requiere para regenerar todo desde las APIs:
 
 ```bash
-# 1. Posicionarse en la carpeta del pipeline
-cd "fase 1 api"
+# Ubicado en "fase 1 api"
+python "fase 1/src/etl_00_divipola.py"
+python "fase 1/src/etl_01_rips_principal.py"
+python "fase 1/src/etl_02_rips_diagnostico.py"
+python "fase 1/src/etl_03_reps.py"
+python "fase 1/src/etl_04_resguardos.py"
+python "fase 1/src/etl_05_poblacion.py"
+python "fase 1/src/etl_06_nbi.py"
 
-# 2. Ejecutar los scripts de extracción y procesamiento ETL
-python src/etl_00_divipola.py
-python src/etl_01_rips_principal.py
-python src/etl_02_rips_diagnostico.py
-python src/etl_03_reps.py
-python src/etl_04_resguardos.py
-python src/etl_05_poblacion.py
-python src/etl_06_nbi.py
+# Construir la tabla final de modelado con split 70/15/15
+python "fase 1/src/build_tabla_modelo.py"
 
-# 3. Construir la tabla final de modelado con split 70/15/15
-python src/build_tabla_modelo.py
-
-# 4. Generar el reporte estadístico EDA
-python src/eda.py
+# Generar el reporte estadístico EDA
+python "fase 1/src/eda.py"
 ```
+
+### 6.4 Fase 2: modelado, optimización y demo
+
+```bash
+# Ubicado en "fase 1 api"
+# Entrenamiento, GridSearch y evaluación de los 4 modelos (~ minutos)
+python "fase 2/src/modelado.py"
+
+# Resolver el MILP y generar el plan de brigadas del Cesar
+python "fase 2/src/optimizacion_milp.py"
+
+# Consultar cualquier municipio con el modelo ya entrenado
+python "fase 2/src/probar_ia.py" "Pueblo Bello"
+```
+
+`probar_ia.py` carga el modelo y el dataset versionados, por lo que funciona **sin reentrenar**. Si se ejecuta sin argumentos, muestra dos casos de ejemplo (Pueblo Bello y Valledupar).
+
+> **Nota:** todos los scripts localizan la raíz del proyecto a partir de su propia ubicación (`common.py`), así que funcionan sin importar la carpeta donde se clone el repositorio y sin rutas absolutas.
 
 ---
 

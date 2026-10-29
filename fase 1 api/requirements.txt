@@ -1,0 +1,27 @@
+# ============================================================
+# Entorno reproducible — Proyecto de Aula IA (Fase 1 y Fase 2)
+# Probado con Python 3.11.9 en Windows.
+# Instalación:  pip install -r requirements.txt
+# ============================================================
+
+# Núcleo de datos y modelado
+numpy==2.3.5
+pandas==2.3.3
+scipy==1.17.1
+scikit-learn==1.9.1
+joblib==1.6.0
+
+# Lectura/escritura de formatos de datos
+pyarrow==22.0.0
+openpyxl==3.1.5
+
+# Visualización
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# Consumo de APIs de datos abiertos
+requests==2.32.5
+
+# Notebooks
+jupyterlab==4.6.4
+ipykernel==7.3.0

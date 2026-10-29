@@ -38,7 +38,8 @@ fase 1 api/
 ├── fase 2/                         <- FASE 2: Desarrollo, Modelado y Optimización
 │   ├── src/
 │   │   ├── modelado.py             <- Entrenamiento, GridSearch y evaluación (4 modelos)
-│   │   └── optimizacion_milp.py    <- Programación Lineal Entera Mixta (Ruteo MILP)
+│   │   ├── optimizacion_milp.py    <- Asignación y despacho MILP (solver HiGHS)
+│   │   └── probar_ia.py            <- Demo de consulta por municipio con el modelo entrenado
 │   ├── notebooks/
 │   │   └── modelado_fase2.ipynb    <- Demostración interactiva de modelado y optimización
 │   ├── modelos/                    <- Modelos serializados (.joblib)
@@ -63,5 +64,29 @@ fase 1 api/
 
 ### Componente Prescriptivo (Optimización MILP)
 * Solver: **HiGHS** vía `scipy.optimize.milp`.
-* Función objetivo: Maximiza el impacto sobre la vulnerabilidad geográfica minimizando distancias de viaje por carretera.
-* Prueba piloto en el **Cesar**: Despacha 4 brigadas desde Valledupar asignando prioritariamente a **Pueblo Bello**, **Becerril**, **Astrea** y **Chimichagua**.
+* Función objetivo: maximiza el impacto sobre la vulnerabilidad geográfica penalizando la distancia geodésica (Haversine) desde el hospital base.
+* Prueba piloto en el **Cesar**: despacha 4 brigadas desde Valledupar asignando prioritariamente a **Pueblo Bello**, **Becerril**, **Astrea** y **Chimichagua**.
+
+---
+
+## Ejecución
+
+Requisitos: **Python 3.11.9**. Las versiones exactas están fijadas en [`requirements.txt`](requirements.txt).
+
+```powershell
+# Desde la carpeta "fase 1 api"
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# Modelado: entrena, ajusta hiperparámetros y evalúa los 4 modelos
+python "fase 2/src/modelado.py"
+
+# Optimización: resuelve el MILP y genera el plan de brigadas
+python "fase 2/src/optimizacion_milp.py"
+
+# Demo: consulta un municipio con el modelo ya entrenado
+python "fase 2/src/probar_ia.py" "Pueblo Bello"
+```
+
+Los datos procesados (`data/`), los modelos (`fase 2/modelos/`) y los reportes (`fase 2/reportes/`) están versionados, por lo que la demo y la optimización funcionan sin reentrenar. El pipeline ETL completo se describe en el [README raíz](../README.md).
