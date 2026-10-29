@@ -1,0 +1,1170 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================================
+% PAQUETES
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.2cm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\usepackage{underscore}
+\usepackage{ragged2e}
+
+\tcbuselibrary{breakable,skins}
+
+% ============================================================
+% COLORES Y ESTILOS
+% ============================================================
+\definecolor{azul}{HTML}{1F3864}
+\definecolor{azulclaro}{HTML}{D9E2F3}
+\definecolor{verde}{HTML}{2E7D32}
+\definecolor{naranja}{HTML}{C55A11}
+\definecolor{gris}{HTML}{F2F2F2}
+\definecolor{grisoscuro}{HTML}{595959}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\tcbset{
+  idea/.style={colback=azul!5,colframe=azul,fonttitle=\bfseries,breakable,
+    left=4pt,right=4pt,top=4pt,bottom=4pt},
+  ojo/.style={colback=naranja!5,colframe=naranja,fonttitle=\bfseries,breakable,
+    left=4pt,right=4pt,top=4pt,bottom=4pt},
+  frase/.style={colback=verde!5,colframe=verde,fonttitle=\bfseries,breakable,
+    left=4pt,right=4pt,top=4pt,bottom=4pt},
+  dato/.style={colback=gris,colframe=grisoscuro,fonttitle=\bfseries,breakable,
+    left=4pt,right=4pt,top=4pt,bottom=4pt}
+}
+
+\titleformat{\section}
+  {\Large\bfseries\color{azul}}{\thesection}{0.6em}{}
+  [\vspace{-0.25em}{\color{azul}\rule{\textwidth}{0.8pt}}]
+\titleformat{\subsection}
+  {\large\bfseries\color{azul}}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{azul}}{\thesubsubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.2ex plus .2ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1.0ex plus .2ex}{0.5ex}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{grisoscuro}Guía de estudio — Fase 2}
+\fancyhead[R]{\small\color{grisoscuro}Sistema de Brigadas de Salud}
+\fancyfoot[C]{\small\thepage\ de \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=azul,
+  urlcolor=azul,
+  citecolor=azul,
+  pdftitle={Guía de estudio y defensa — Fase 2},
+  pdfauthor={Jorman David Noriega Dávila; Julio César Ríos Maldonado; Gabriel Omar Venegas González}
+}
+
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.18}
+
+% ============================================================
+% DOCUMENTO
+% ============================================================
+\begin{document}
+
+% ---------- PORTADA ----------
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+\centering
+\vspace*{1.2cm}
+
+{\color{azul}\rule{\textwidth}{3pt}}\\[0.45cm]
+{\Huge\bfseries\color{azul} Guía de estudio\\[0.15cm] y defensa — Fase 2}\\[0.55cm]
+{\Large Sistema Inteligente de Priorización y\\[0.1cm]
+Optimización Espacial de Brigadas de Salud Extramurales}\\[0.35cm]
+{\color{azul}\rule{\textwidth}{1pt}}\\[1.0cm]
+
+\begin{tabular}{r l}
+\textbf{Equipo:} & Jorman David Noriega Dávila \\
+ & Julio César Ríos Maldonado \\
+ & Gabriel Omar Venegas González \\[0.35cm]
+\textbf{Docente:} & Tonny Jiménez \\
+\textbf{Universidad:} & Universidad Popular del Cesar \\
+\textbf{Facultad:} & Ingenierías y Tecnologías \\
+\textbf{Programa:} & Ingeniería de Sistemas e Informática \\
+\textbf{Ciudad:} & Valledupar, Cesar \\
+\textbf{Año:} & 2026 \\
+\end{tabular}
+
+\vfill
+
+\begin{tcolorbox}[colback=azul!5,colframe=azul,width=0.88\textwidth]
+\centering
+\small
+Documento de apoyo para la exposición.\\
+No reemplaza el documento técnico de 12 páginas de la Fase 2.
+\end{tcolorbox}
+
+\vspace{0.6cm}
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+% ---------- RESUMEN ----------
+\begin{abstract}
+\noindent
+Esta guía reúne, en un solo documento, la explicación del dataset que dejó la Fase~1, el procesamiento y los resultados de la Fase~2, y un plan de estudio para explicar el proyecto paso a paso. Está organizada en tres bloques: \textbf{(1)} qué contiene la tabla \code{municipio_anio.parquet}, cuáles son sus 27 entradas y cuál es su salida; \textbf{(2)} qué hacen los modelos y el MILP con esa información; y \textbf{(3)} cómo estudiar y exponer el proyecto, con guion de seis minutos, banco de preguntas y errores que conviene evitar.
+\end{abstract}
+
+\begingroup
+\small
+\tableofcontents
+\endgroup
+\newpage
+
+% ============================================================
+\section{Cómo usar esta guía}
+% ============================================================
+
+Esta guía está pensada para tres momentos:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Entender:} leer las secciones 1 y 2 para dominar el dataset y el modelado.
+  \item \textbf{Estudiar:} seguir la ruta de tres días de la sección 3.
+  \item \textbf{Exponer:} ensayar el guion de la sección 4 y repasar el banco de preguntas de la sección 5.
+\end{enumerate}
+
+Si tienes poco tiempo, prioriza: \textbf{1.3} (target), \textbf{2.3} (métricas), \textbf{2.5} (MILP), \textbf{4} (guion) y \textbf{5} (preguntas).
+
+\subsection{Resumen ejecutivo en 12 números}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}c L{7.2cm} Y@{}}
+\toprule
+\textbf{\#} & \textbf{Dato} & \textbf{Valor} \\
+\midrule
+1 & Municipios en el dataset & 1.122 \\
+2 & Filas municipio--año & 5.610 \\
+3 & Columnas totales & 74 \\
+4 & Variables de entrada del modelo & 27 \\
+5 & Filas usables para modelar & 5.394 \\
+6 & Positivos (\code{prioridad_alta}) & 1.798 (33,3\%) \\
+7 & Train / Validación / Test (filas) & 3.770 / 807 / 817 \\
+8 & Train / Validación / Test (municipios) & 785 / 168 / 169 \\
+9 & Mejor modelo & HistGradientBoosting \\
+10 & F1 / recall / ROC-AUC del mejor modelo & 0,6234 / 0,5379 / 0,7848 \\
+11 & Brigadas asignadas por el MILP & 4 \\
+12 & Municipios del Cesar evaluados & 25 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ruta de estudio de tres días}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}l c c Y@{}}
+\toprule
+\textbf{Día} & \textbf{Bloques} & \textbf{Tiempo} & \textbf{Producto esperado} \\
+\midrule
+Día 1 & 1 y 2 & 2,5 h & Explicar la tabla y la fórmula del target en una hoja. \\
+Día 2 & 3 y 4 & 3,0 h & Explicar los modelos y recalcular la matriz de confusión. \\
+Día 3 & 5 y 6 & 2,5 h & Explicar el MILP y ensayar el guion de seis minutos. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Qué dejó la Fase 1: el dataset}
+% ============================================================
+
+\subsection{Resumen en una frase}
+
+La Fase~1 no entregó un modelo: entregó una \textbf{tabla analítica municipio--año} que cruza 1.122 municipios de Colombia durante 2017--2021 con datos de RIPS, REPS, NBI, resguardos, población y DIVIPOLA. Esa tabla es la materia prima de la Fase~2.
+
+\subsection{Ficha técnica}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.2cm} Y@{}}
+\toprule
+\textbf{Elemento} & \textbf{Valor} \\
+\midrule
+Archivo principal & \code{fase 1 api/data/modelo/municipio_anio.parquet} \\
+Formato alterno & \code{municipio_anio.csv} \\
+Unidad de análisis & Municipio $\times$ año \\
+Llave & \code{cod_mpio} + \code{a_o} \\
+Filas & 5.610 (1.122 municipios $\times$ 5 años) \\
+Columnas & 74 \\
+Años & 2017--2021 \\
+Filas usables para modelar & 5.394 \\
+Entradas del modelo & 27 \\
+Salida del modelo & \code{prioridad_alta} (binaria) \\
+Train / Validación / Test (filas) & 3.770 / 807 / 817 \\
+Train / Validación / Test (municipios) & 785 / 168 / 169 \\
+Positivos & 1.798 de 5.394 = 33,3\% \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{tcolorbox}[ojo,title={La advertencia más importante}]
+No son 5.610 municipios independientes. Son \textbf{1.122 municipios con 5 observaciones cada uno}. Además, muchas variables estructurales ---NBI, REPS, resguardos y los porcentajes CIE-10--- son prácticamente constantes en los cinco años. La variación anual viene sobre todo de la población y del volumen de atenciones. Por eso el modelo es \textbf{transversal}, no una serie de tiempo, y el split se hace por municipio, no por fila.
+\end{tcolorbox}
+
+\subsection{La salida: \code{prioridad_alta}}
+
+No es ``el municipio tiene o no déficit'' en términos absolutos. Es una \textbf{prioridad relativa} construida así:
+
+\begin{align}
+\text{tasa}_{i,t} &= \frac{\text{consultas}_{i,t}}{\text{población}_{i,t}} \\
+\text{bench}_{i,t} &= \operatorname{mediana}\left\{\text{tasa}_{j,t} : j \in \text{banda}_i\right\} \\
+\text{brecha}_{i,t} &= \max\left(0,\; 1 - \frac{\text{tasa}_{i,t}}{\text{bench}_{i,t}}\right) \\
+\text{prioridad alta}_{i,t} &=
+\begin{cases}
+1 & \text{si } \text{brecha}_{i,t} \ge q_{66} \approx 0{,}337 \\
+0 & \text{en otro caso}
+\end{cases}
+\end{align}
+
+\paragraph{Cómo se interpreta.}
+\begin{itemize}[leftmargin=*]
+  \item Se compara cada municipio con municipios \textbf{de tamaño similar}, no contra el promedio nacional.
+  \item Si un municipio tiene una tasa de consultas muy por debajo de sus pares, su \code{brecha} sube.
+  \item El corte está en el \textbf{tercio superior} de esa brecha: aproximadamente \textbf{0,337}.
+  \item Eso significa: ``este municipio tiene cerca de \textbf{34\% menos consultas por habitante} que la mediana de municipios parecidos''.
+  \item El \textbf{33,3\% de positivos es por construcción}, no porque el 33\% de Colombia tenga un déficit crítico. Es una etiqueta relativa de priorización.
+\end{itemize}
+
+\paragraph{Ejemplos reales con datos de 2021.}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}l r r r c@{}}
+\toprule
+\textbf{Municipio} & \textbf{Consultas/1.000 hab} & \textbf{Benchmark} & \textbf{Brecha} & \textbf{Etiqueta} \\
+\midrule
+Valledupar & 2.388 & 1.903 & 0,000 & 0 \\
+Pueblo Bello & 2.679 & 1.492 & 0,000 & 0 \\
+Becerril & 1.195 & 1.492 & 0,199 & 0 \\
+Astrea & 728 & 1.492 & 0,512 & 1 \\
+Chimichagua & 873 & 1.903 & 0,541 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Esto explica algo que suele confundir: \textbf{Pueblo Bello no es ``prioridad alta'' para el modelo} porque su tasa de consultas está por encima de la mediana de sus pares. Luego veremos por qué aun así el MILP lo selecciona.
+
+\paragraph{¿Qué es un hub y por qué se excluye?}
+Un \textbf{hub} es un prestador de referencia regional: su tasa de consultas es al menos 3 veces la mediana de su banda de población. Atrae pacientes de otros municipios, así que si se incluyera en el ranking aparecería como ``muy bien cubierto'' y distorsionaría la comparación.
+
+\begin{itemize}[leftmargin=*]
+  \item Hay \textbf{211 filas municipio--año} marcadas como hub.
+  \item Se conservan en la tabla, pero \textbf{no entran al entrenamiento}.
+  \item Del total, quedan \textbf{5.394 filas usables} (211 hubs y 5 filas sin RIPS que ya no tenían target).
+\end{itemize}
+
+\subsection{Las 27 entradas del modelo}
+
+El dataset tiene 74 columnas, pero el modelo usa solo \textbf{27 features}. Están agrupadas en cinco bloques:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}l c Y@{}}
+\toprule
+\textbf{Bloque} & \textbf{\#} & \textbf{Variables y qué representan} \\
+\midrule
+Geografía y demografía & 5 &
+\code{latitud}, \code{longitud}, \code{poblacion}, \code{pct_rural_disperso}, \code{banda_pob}.
+Ubicación, tamaño y ruralidad. \\
+Pobreza multidimensional (NBI) & 11 &
+\code{nbi_total}, \code{nbi_miseria}, \code{nbi_vivienda}, \code{nbi_servicios},
+\code{nbi_hacinamiento}, \code{nbi_inasistencia}, \code{nbi_dependencia},
+\code{nbi_rural}, \code{nbi_rural_miseria}, \code{nbi_rural_servicios},
+\code{nbi_rural_hacinamiento}. Vulnerabilidad estructural y pobreza rural. \\
+Capacidad instalada (REPS) & 3 &
+\code{n_sedes}, \code{n_sedes_ese}, \code{sedes_10k_hab}.
+Oferta de servicios de salud. \\
+Contexto étnico & 3 &
+\code{n_resguardos}, \code{pob_resguardos}, \code{n_comunidades}.
+Presencia indígena y equidad. \\
+Perfil de morbilidad (CIE-10) & 5 &
+\code{pct_cap_O}, \code{pct_cap_A}, \code{pct_cap_J}, \code{pct_cap_K}, \code{pct_cap_Z}.
+Mezcla de diagnósticos. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Qué significa cada grupo.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Geografía y demografía:} la hipótesis es que municipios rurales, dispersos y pequeños tienen más barreras de acceso.
+  \item \textbf{NBI:} mide pobreza multidimensional. \code{nbi_servicios}, por ejemplo, es el porcentaje de viviendas sin servicios adecuados; \code{nbi_rural_servicios} es lo mismo en el área rural dispersa.
+  \item \textbf{REPS:} mide capacidad instalada. \code{sedes_10k_hab} es el número de sedes por cada 10.000 habitantes.
+  \item \textbf{Étnico:} \code{pob_resguardos} es la población en resguardos indígenas; \code{n_resguardos} cuenta cuántos hay.
+  \item \textbf{CIE-10:} son \textbf{porcentajes} de atenciones por capítulo diagnóstico, no conteos.
+\end{itemize}
+
+\paragraph{Los cinco capítulos CIE-10 usados.}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}c L{5.0cm} Y@{}}
+\toprule
+\textbf{Código} & \textbf{Capítulo} & \textbf{Interpretación} \\
+\midrule
+\code{pct_cap_O} & Embarazo, parto y puerperio & Demanda materno-infantil. \\
+\code{pct_cap_A} & Enfermedades infecciosas y parasitarias & Carga infecciosa. \\
+\code{pct_cap_J} & Enfermedades respiratorias & Carga respiratoria. \\
+\code{pct_cap_K} & Enfermedades digestivas & Carga digestiva. \\
+\code{pct_cap_Z} & Contacto con servicios de salud & Utilización de servicios; no es una enfermedad. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+El dataset tiene 26 capítulos CIE-10 (A--Z). El modelo usa cinco porque concentran la demanda más relevante para brigadas extramurales: materno-infantil, infecciosas, respiratorias, digestivas y contacto con servicios. Los otros 21 quedaron fuera para reducir ruido, redundancia y complejidad. No porque no existan.
+
+\subsection{Lo que está en el dataset pero \textbf{no} entra al modelo}
+
+Esto es clave para defender que no hay fuga de datos directa:
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{4.2cm} Y L{4.3cm}@{}}
+\toprule
+\textbf{Grupo} & \textbf{Columnas} & \textbf{Por qué se excluyen} \\
+\midrule
+Volumen y tasas RIPS &
+\code{consultas}, \code{hospitalizaciones}, \code{procedimientos}, \code{urgencias},
+\code{atenciones_total}, \code{consultas_1000hab}, \code{urgencias_1000hab},
+\code{hosp_1000hab}, \code{proced_1000hab}, \code{ratio_consultas_urgencias} &
+Son la materia prima del target; incluirlas sería fuga. \\
+Derivadas del target &
+\code{bench_consultas}, \code{brecha_consultas}, \code{bench_global}, \code{brecha_global},
+\code{brecha_nacional}, \code{prioridad_alta}, \code{es_hub} &
+Contienen la respuesta. \\
+Identificadores y control &
+\code{cod_mpio}, \code{cod_dpto}, \code{nom_mpio}, \code{a_o}, \code{split}, \code{sin_rips} &
+No son predictores. \\
+CIE-10 restantes & 21 capítulos & Redundancia y ruido. \\
+NBI restantes &
+\code{nbi_rural_vivienda}, \code{nbi_rural_inasistencia}, \code{nbi_rural_dependencia} &
+Redundancia con las otras NBI. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La regla es: \textbf{el modelo usa contexto estructural y perfil de morbilidad; no usa el volumen ni la brecha de consultas}. Eso es lo que hace que la predicción tenga sentido.
+
+\subsection{Las tres ideas que debes dominar de la Fase 1}
+
+\begin{tcolorbox}[idea,title={Ideas clave}]
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{La tabla es municipio--año, no paciente.} 5.610 filas, 74 columnas, 1.122 municipios, 2017--2021.
+  \item \textbf{El target es relativo:} tercio superior de la brecha contra municipios pares. No es prevalencia real.
+  \item \textbf{El split es por municipio:} 785 municipios en train, 168 en validación y 169 en test. Ningún municipio aparece en dos conjuntos.
+\end{enumerate}
+\end{tcolorbox}
+
+% ============================================================
+\section{Qué hace la Fase 2 con esos datos}
+% ============================================================
+
+\subsection{Pipeline en siete pasos}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}c L{4.2cm} Y@{}}
+\toprule
+\textbf{Paso} & \textbf{Acción} & \textbf{Resultado} \\
+\midrule
+1 & Cargar y limpiar & Se excluyen hubs, se eliminan filas sin target y se imputan medianas de CIE-10. Quedan 5.394 filas. \\
+2 & Separar & Train, validación y test vienen definidos desde Fase~1, agrupados por municipio. \\
+3 & Escalar & Solo para Regresión Logística, con \code{StandardScaler}. Los árboles no necesitan escalado. \\
+4 & Entrenar & Cuatro modelos: Dummy, Regresión Logística, Random Forest e HistGradientBoosting. \\
+5 & Evaluar & Métricas en test ciego: accuracy, precision, recall, F1, ROC-AUC, PR-AUC y matriz de confusión. \\
+6 & Interpretar & Importancia Gini del Random Forest. \\
+7 & Optimizar & La probabilidad del mejor modelo alimenta el MILP de asignación de brigadas. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Modelos y ajuste}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.6cm} L{2.4cm} c Y@{}}
+\toprule
+\textbf{Modelo} & \textbf{Tipo} & \textbf{Escalado} & \textbf{Ajuste y rol} \\
+\midrule
+Dummy & Baseline trivial & No &
+\code{most_frequent}: predice siempre la clase mayoritaria. Sirve para demostrar por qué la accuracy sola engaña. \\
+Regresión Logística & Lineal & Sí &
+\code{class_weight='balanced'}, \code{max_iter=1000}. Modelo interpretable y base lineal. \\
+Random Forest & Bagging de árboles & No &
+Grid de 12 combinaciones $\times$ 3 folds: \code{n_estimators} [100, 200], \code{max_depth} [6, 10, None], \code{min_samples_split} [2, 5], \code{class_weight='balanced'}. \\
+HistGradientBoosting & Boosting de árboles & No &
+Grid de 24 combinaciones $\times$ 3 folds: \code{learning_rate} [0.03, 0.08, 0.15], \code{max_iter} [100, 150], \code{max_leaf_nodes} [15, 31], \code{min_samples_leaf} [20, 40]. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{itemize}[leftmargin=*]
+  \item La búsqueda de hiperparámetros usa \code{GridSearchCV} con \code{cv=3} y \code{scoring='f1'}.
+  \item El escalado se aplica solo a la Regresión Logística; los árboles son invariantes a la escala.
+  \item \code{class_weight='balanced'} compensa que la clase positiva sea aproximadamente un tercio del total.
+  \item El conjunto de test es ciego: no se usa para elegir hiperparámetros ni umbral.
+\end{itemize}
+
+\subsection{Resultados reales en test}
+
+Test: \textbf{817 filas, 277 positivos (33,9\%)}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}l r r r r r r@{}}
+\toprule
+\textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC-AUC} & \textbf{PR-AUC} \\
+\midrule
+\textbf{HistGradientBoosting} & \textbf{0,7797} & \textbf{0,7413} & \textbf{0,5379} & \textbf{0,6234} & \textbf{0,7848} & \textbf{0,7414} \\
+Random Forest & 0,7283 & 0,6211 & 0,5090 & 0,5595 & 0,7653 & 0,6803 \\
+Regresión Logística & 0,6573 & 0,4952 & 0,5596 & 0,5254 & 0,6920 & 0,5926 \\
+Dummy & 0,6610 & 0,0000 & 0,0000 & 0,0000 & 0,5000 & 0,3390 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Matriz de confusión de HistGradientBoosting.}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}l c c@{}}
+\toprule
+ & \textbf{Predice no prioritario} & \textbf{Predice prioritario} \\
+\midrule
+\textbf{Real no prioritario} & 488 TN & 52 FP \\
+\textbf{Real prioritario} & 128 FN & 149 TP \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Cómo leer esto.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Dummy tiene 66,1\% de accuracy y F1 = 0.} ¿Por qué? Porque el 66,1\% del test son negativos; si predice siempre ``no prioritario'', acierta la mayoría, pero \textbf{no detecta ni un solo municipio prioritario}. Por eso la accuracy sola engaña.
+  \item \textbf{HGB es el mejor en F1 y PR-AUC.} Detecta \textbf{149 de 277} municipios prioritarios: recall \textbf{53,8\%}. Cuando alerta, acierta el \textbf{74,1\%} de las veces: precision \textbf{0,7413}.
+  \item \textbf{ROC-AUC 0,7848:} si tomas un municipio prioritario y uno no prioritario al azar, el modelo ordena al prioritario por encima en el 78,5\% de los casos.
+  \item \textbf{PR-AUC 0,7414:} mucho mejor que el baseline de 0,339 (la prevalencia). Es la métrica más informativa cuando la clase positiva es minoritaria.
+  \item \textbf{El umbral es 0,5.} No es sagrado: si el objetivo es no dejar municipios por fuera, se puede bajar el umbral y ganar recall a costa de precisión. Eso es una decisión operativa.
+\end{itemize}
+
+\begin{tcolorbox}[idea,title={Cómo explicar la matriz en una frase}]
+``El modelo detecta 149 de los 277 municipios prioritarios; se le escapan 128 y hace 52 falsas alarmas. Cuando dice `prioritario', acierta tres de cada cuatro veces.''
+\end{tcolorbox}
+
+\subsection{Interpretabilidad: top 5 del Random Forest}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}l r@{}}
+\toprule
+\textbf{Variable} & \textbf{Importancia Gini} \\
+\midrule
+\code{pct_cap_O} (materno) & 0,11218 \\
+\code{pob_resguardos} & 0,09068 \\
+\code{nbi_servicios} & 0,08490 \\
+\code{nbi_rural_servicios} & 0,05946 \\
+\code{pct_cap_A} (infecciosas) & 0,04852 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Por bloques, aproximadamente:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}l r@{}}
+\toprule
+\textbf{Bloque} & \textbf{Importancia aproximada} \\
+\midrule
+NBI & 42\% \\
+CIE-10 & 26\% \\
+Geografía y demografía & 15\% \\
+Étnico & 12\% \\
+REPS & 5\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{tcolorbox}[ojo,title={Advertencia sobre Gini}]
+Gini mide reducción de impureza, \textbf{no causalidad}. Si dos variables están correlacionadas, se reparten la importancia. \code{pct_cap_O} puede ser un proxy de demanda materna, no una causa. No digas ``esta variable causa la prioridad''; di ``esta variable es la más asociada en el modelo''.
+\end{tcolorbox}
+
+\subsection{El MILP: de probabilidad a plan de brigadas}
+
+El modelo anterior puntúa municipios, pero no decide un plan. El MILP sí:
+
+\begin{equation}
+\max \sum_{i \in \mathcal{M}}
+\left[\, p_i \cdot \log(1 + v_i) - \lambda d_i \,\right] x_i
+\end{equation}
+
+sujeto a:
+
+\begin{align}
+\sum_{i \in \mathcal{M}} x_i &\le K \\
+\sum_{i \in \mathcal{R}} x_i &\ge 2 \\
+x_i &= 0 \quad \text{si } d_i > D_{\max} \\
+x_i &\in \{0,1\}
+\end{align}
+
+Donde:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{3.2cm} Y@{}}
+\toprule
+\textbf{Símbolo} & \textbf{Significado} \\
+\midrule
+$p_i$ & Probabilidad de prioridad alta del municipio $i$, estimada por el HGB. \\
+$v_i$ & Población vulnerable: población rural dispersa + población en resguardos. \\
+$d_i$ & Distancia Haversine desde Valledupar (hospital base). \\
+$\lambda$ & Penalización por distancia: 0,005. \\
+$K$ & Brigadas disponibles: 4. \\
+$D_{\max}$ & Distancia máxima por brigada: 350 km. \\
+$\mathcal{R}$ & Municipios con al menos un resguardo indígena. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Resultado en el Cesar, 2021.}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}l r r r c@{}}
+\toprule
+\textbf{Municipio} & \textbf{Prob. IA} & \textbf{Distancia} & \textbf{Resguardos} & \textbf{Brigada} \\
+\midrule
+Pueblo Bello & 36,9\% & 36,06 km & 2 & \#1 \\
+Becerril & 45,8\% & 84,10 km & 2 & \#2 \\
+Astrea & 90,9\% & 132,70 km & 0 & \#3 \\
+Chimichagua & 75,0\% & 146,76 km & 0 & \#4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Por qué Pueblo Bello entra con 36,9\%.}
+Porque el MILP no solo maximiza probabilidad. También exige \textbf{mínimo dos municipios con resguardos}. Pueblo Bello y Becerril cumplen esa cuota. No es una inconsistencia: son dos criterios distintos.
+
+\begin{itemize}[leftmargin=*]
+  \item El \textbf{modelo} dice: ``la cobertura de Pueblo Bello no está críticamente por debajo de sus pares''.
+  \item El \textbf{MILP} dice: ``aun así, por equidad, debe entrar un municipio con resguardos''.
+\end{itemize}
+
+\begin{tcolorbox}[frase,title={Pregunta típica}]
+\textbf{``¿Por qué el modelo dice 36,9\% y aun así lo asignan?''}\\
+Porque el MILP tiene una restricción de equidad: mínimo dos municipios con resguardos. El modelo mide brecha de cobertura; el MILP agrega equidad, distancia y población vulnerable. Son criterios complementarios.
+\end{tcolorbox}
+
+\begin{tcolorbox}[ojo,title={No es ruteo}]
+El MILP es un modelo de \textbf{asignación de brigadas a municipios}, no un problema de ruteo de vehículos (VRP). La distancia es Haversine desde la base, no una ruta por carretera. El ruteo real es trabajo futuro.
+\end{tcolorbox}
+
+\subsection{La demo}
+
+\begin{verbatim}
+python "fase 2/src/probar_ia.py" "Valledupar"
+python "fase 2/src/probar_ia.py" "Pueblo Bello"
+python "fase 2/src/probar_ia.py" "Astrea"
+python "fase 2/src/optimizacion_milp.py"
+\end{verbatim}
+
+\code{probar_ia.py} carga el parquet y el modelo HGB ya entrenados, filtra el municipio en 2021 y muestra probabilidad y recomendación. \textbf{No reentrena.}
+
+\paragraph{Qué esperar.}
+\begin{itemize}[leftmargin=*]
+  \item Valledupar: probabilidad muy baja ($\approx$ 0,9\%), recomendación normal.
+  \item Pueblo Bello: 36,9\%, recomendación normal para el modelo, pero entra al plan del MILP por la cuota de resguardos.
+  \item Astrea: 90,9\%, prioridad alta.
+\end{itemize}
+
+% ============================================================
+\section{Plan de estudio}
+% ============================================================
+
+\subsection{Ruta de tres días}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}l c c Y@{}}
+\toprule
+\textbf{Día} & \textbf{Bloques} & \textbf{Tiempo} & \textbf{Producto} \\
+\midrule
+Día 1 & 1 y 2 & 2,5 h & Explicar la tabla y la fórmula en una hoja. \\
+Día 2 & 3 y 4 & 3,0 h & Resolver la matriz de confusión a mano. \\
+Día 3 & 5 y 6 & 2,5 h & Guion de seis minutos sin notas. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Si tienes una semana, haz un bloque por día y repite el ensayo dos veces.
+
+\subsection{Bloque 1 --- El dataset y el target (90 min)}
+
+\paragraph{Estudia.}
+\begin{itemize}[leftmargin=*]
+  \item \code{fase 1 api/fase 1/docs/diccionario_datos.md} (completo; es el mejor resumen).
+  \item \code{fase 1 api/fase 1/src/build_tabla_modelo.py}, líneas 120--154 (target) y 38--56 (split).
+\end{itemize}
+
+\paragraph{Debes poder explicar.}
+\begin{itemize}[leftmargin=*]
+  \item Qué es una fila: municipio--año.
+  \item Por qué 5.610 = 1.122 $\times$ 5.
+  \item La fórmula del target y el corte 0,337.
+  \item Por qué 33,3\% de positivos es por construcción.
+  \item Qué es un hub y por qué se excluye.
+  \item Por qué el split es por municipio.
+\end{itemize}
+
+\paragraph{Ejercicio.}
+Con los datos de la tabla de ejemplos, calcula a mano la brecha de Astrea y de Valledupar. Verifica que Astrea queda en 1 y Valledupar en 0.
+
+\begin{tcolorbox}[frase,title={Frase para el profesor}]
+``La Fase~1 produjo una tabla municipio--año de 5.610 filas y 74 columnas. La salida es una etiqueta relativa: el tercio de municipios con mayor brecha de consultas frente a municipios de tamaño similar.''
+\end{tcolorbox}
+
+\subsection{Bloque 2 --- Features y fuga de datos (60--90 min)}
+
+\paragraph{Estudia.}
+\begin{itemize}[leftmargin=*]
+  \item \code{fase 1 api/fase 2/src/modelado.py}, líneas 36--69 (lista \code{FEATURES}).
+  \item \code{fase 1 api/fase 1/docs/diccionario_datos.md}, sección ``Advertencias''.
+\end{itemize}
+
+\paragraph{Debes poder explicar.}
+\begin{itemize}[leftmargin=*]
+  \item 74 columnas del dataset vs 27 entradas del modelo.
+  \item Los cinco bloques de variables.
+  \item Por qué \code{consultas_1000hab}, \code{brecha_consultas} y \code{prioridad_alta} no son entradas.
+  \item Por qué los CIE-10 son porcentajes y no conteos.
+  \item Que los CIE-10, NBI, REPS y resguardos son casi constantes en el tiempo; el modelo es transversal.
+\end{itemize}
+
+\paragraph{Pregunta difícil.}
+``Si el target sale de RIPS, ¿usar CIE-10 no es fuga?''\\
+\textbf{Respuesta:} ``El target es volumen/tasa de consultas; las features CIE-10 son la composición porcentual de diagnósticos, no el conteo. Excluimos volumen, tasas, benchmarks y brechas. Aun así, \code{pct_cap_Z} es la variable más discutible porque mide contacto con servicios; en una versión estricta la quitaría y volvería a evaluar.''
+
+\subsection{Bloque 3 --- Modelos y diseño experimental (90 min)}
+
+\paragraph{Estudia.}
+\begin{itemize}[leftmargin=*]
+  \item \code{fase 1 api/fase 2/src/modelado.py}, líneas 130--244.
+  \item \code{fase 1 api/fase 2/reportes/metricas_comparacion.csv}.
+\end{itemize}
+
+\paragraph{Debes poder explicar.}
+\begin{itemize}[leftmargin=*]
+  \item Dummy: baseline que predice la clase mayoritaria.
+  \item Regresión Logística: lineal, interpretable, necesita escalado.
+  \item Random Forest: muchos árboles, bagging, no necesita escalado.
+  \item HistGradientBoosting: boosting, árboles secuenciales, captura no linealidades.
+  \item GridSearch: RF 12 combinaciones $\times$ 3 folds; HGB 24 combinaciones $\times$ 3 folds.
+  \item Por qué se usa \code{class_weight='balanced'} en LR y RF.
+  \item Por qué el test es ciego.
+\end{itemize}
+
+\paragraph{Pregunta difícil.}
+``¿Por qué no una red neuronal?''\\
+\textbf{Respuesta:} ``Con 3.770 filas de entrenamiento y 27 variables tabulares, los ensambles de árboles son más robustos, rápidos e interpretables. Una red neuronal requeriría más datos y tuning, y no garantiza mejor generalización.''
+
+\paragraph{Pregunta difícil.}
+``¿Usaron el set de validación?''\\
+\textbf{Respuesta honesta:} ``El split 70/15/15 está definido y el set de validación está reservado, pero en la versión actual la selección de hiperparámetros se hizo con validación cruzada de 3 pliegues sobre train y la evaluación final con test. El set de validación queda para calibrar el umbral y para la siguiente iteración.''
+
+\subsection{Bloque 4 --- Métricas (90 min)}
+
+\paragraph{Estudia.}
+\begin{itemize}[leftmargin=*]
+  \item La tabla de métricas y la matriz de confusión.
+  \item \code{fase 1 api/fase 2/reportes/matriz_confusion_modelos.png}.
+  \item \code{fase 1 api/fase 2/reportes/curva_roc_comparacion.png}.
+\end{itemize}
+
+\paragraph{Debes poder calcular a mano.}
+Para HGB:
+\begin{align*}
+\text{Precision} &= \frac{149}{149 + 52} = 0{,}7413 \\
+\text{Recall} &= \frac{149}{149 + 128} = 0{,}5379 \\
+\text{F1} &= \frac{2 \times 0{,}7413 \times 0{,}5379}{0{,}7413 + 0{,}5379} = 0{,}6234 \\
+\text{Accuracy} &= \frac{488 + 149}{817} = 0{,}7797
+\end{align*}
+
+\paragraph{Debes poder explicar.}
+\begin{itemize}[leftmargin=*]
+  \item Por qué el Dummy tiene 66,1\% de accuracy y F1 = 0.
+  \item Qué significa ``detecta 149 de 277''.
+  \item Qué significa ``cuando alerta, acierta 74\%''.
+  \item Diferencia entre ROC-AUC y PR-AUC.
+  \item Que el umbral 0,5 es una decisión operativa, no una ley.
+\end{itemize}
+
+\begin{tcolorbox}[frase,title={Frase para el profesor}]
+``No usamos accuracy como métrica principal porque el 66\% del test son negativos. El Dummy acierta el 66\% y no detecta nada. Por eso miramos F1, recall y PR-AUC.''
+\end{tcolorbox}
+
+\subsection{Bloque 5 --- Interpretabilidad y MILP (90 min)}
+
+\paragraph{Estudia.}
+\begin{itemize}[leftmargin=*]
+  \item \code{fase 1 api/fase 2/reportes/importancia_variables_rf.png}.
+  \item \code{fase 1 api/fase 2/src/optimizacion_milp.py}, líneas 78--128.
+\end{itemize}
+
+\paragraph{Debes poder explicar.}
+\begin{itemize}[leftmargin=*]
+  \item Top 5 de importancia y los bloques.
+  \item Que Gini no es causalidad.
+  \item La función objetivo del MILP.
+  \item Las tres restricciones: máximo 4 brigadas, mínimo 2 con resguardos, distancia $\le$ 350 km.
+  \item Por qué Pueblo Bello entra con 36,9\%.
+  \item Que es \textbf{asignación}, no ruteo de vehículos.
+\end{itemize}
+
+\paragraph{Ejercicio.}
+Escribe la función objetivo y las restricciones en una hoja, sin mirar el código. Luego resuelve un ejemplo de tres municipios por enumeración.
+
+\subsection{Bloque 6 --- Demo y ensayo (60 min)}
+
+\paragraph{Ejecuta.}
+\begin{verbatim}
+python "fase 2/src/probar_ia.py" "Valledupar"
+python "fase 2/src/probar_ia.py" "Pueblo Bello"
+python "fase 2/src/probar_ia.py" "Astrea"
+python "fase 2/src/optimizacion_milp.py"
+\end{verbatim}
+
+\paragraph{Debes poder explicar.}
+\begin{itemize}[leftmargin=*]
+  \item Qué carga \code{probar_ia.py}: parquet + \code{modelo_gradient_boosting.joblib}.
+  \item Por qué no reentrena.
+  \item Por qué Valledupar da 0,9\% y Astrea 90,9\%.
+  \item Por qué Pueblo Bello da 36,9\% y aun así entra al plan.
+\end{itemize}
+
+\paragraph{Ensayo.}
+Graba un video de seis minutos y míralo. Repite sin notas.
+
+\subsection{Checklist final}
+
+\begin{itemize}[leftmargin=*,label=$\square$]
+  \item Puedo dibujar el pipeline Fase~1 $\rightarrow$ dataset $\rightarrow$ Fase~2 $\rightarrow$ MILP $\rightarrow$ demo.
+  \item Puedo escribir la fórmula del target sin mirar.
+  \item Puedo explicar 74 columnas vs 27 features.
+  \item Puedo explicar por qué el split es por municipio.
+  \item Puedo recalcular precision, recall, F1 y accuracy de HGB.
+  \item Puedo explicar el top 5 y los bloques de importancia.
+  \item Puedo escribir la función objetivo y las restricciones del MILP.
+  \item Puedo explicar Pueblo Bello sin titubear.
+  \item Puedo correr la demo y explicar qué carga.
+  \item Puedo decir tres limitaciones y tres mejoras.
+  \item Puedo dar el guion de seis minutos sin notas.
+\end{itemize}
+
+% ============================================================
+\section{Guion de seis minutos}
+% ============================================================
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{2.0cm} Y@{}}
+\toprule
+\textbf{Tiempo} & \textbf{Qué dices} \\
+\midrule
+0:00--0:30 &
+``Las brigadas se asignan hoy con criterios empíricos. Nuestro objetivo es priorizar municipios con datos y optimizar su asignación.'' \\
+0:30--2:00 &
+``La Fase~1 construyó una tabla municipio--año: 1.122 municipios $\times$ 5 años, 74 columnas. De ahí salen 27 entradas y una salida: \code{prioridad_alta}, el tercio superior de la brecha de consultas frente a municipios pares.'' \\
+2:00--3:00 &
+``La Fase~2 compara cuatro modelos. HGB gana con F1 0,623, recall 0,538 y ROC-AUC 0,785. Detecta 149 de 277 municipios prioritarios y, cuando alerta, acierta 74\%.'' \\
+3:00--4:00 &
+``Las variables más importantes son NBI, perfil materno e infeccioso y población en resguardos. Es asociación, no causalidad.'' \\
+4:00--5:00 &
+``Con esa probabilidad, el MILP asigna cuatro brigadas desde Valledupar con restricciones de distancia y equidad. Resultado: Pueblo Bello, Becerril, Astrea y Chimichagua.'' \\
+5:00--6:00 &
+``Limitaciones: la etiqueta es relativa, los datos RIPS están agregados por sede del prestador y el modelo es transversal. Como trabajo futuro: validación temporal, calibración y ruteo real.'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Consejos de oralidad}
+
+\begin{itemize}[leftmargin=*]
+  \item No leas la slide: úsala como apoyo.
+  \item Empieza por el problema, no por la tabla.
+  \item Di los números redondeados: ``casi 78\% de accuracy'', ``detecta 149 de 277''.
+  \item Si no sabes algo, di: ``no lo medimos; lo reconocería como limitación''.
+  \item Cierra con limitaciones y trabajo futuro, no con un ``gracias'' vacío.
+\end{itemize}
+
+\subsection{Alternativa de contingencia: Pitch relámpago de tres minutos}
+Si el docente Tonny Jiménez solicita ir directo al grano o recorta el tiempo de intervención, utiliza esta estructura condensada de tres minutos:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{2.0cm} Y@{}}
+\toprule
+\textbf{Tiempo} & \textbf{Mensaje clave (Qué decir sin titubear)} \\
+\midrule
+0:00--1:00 &
+``Las brigadas médicas extramurales se despachan hoy por intuición política o reclamos puntuales. Diseñamos un sistema en dos etapas: una predictiva que detecta déficit asistencial relativo usando datos 100\% oficiales (RIPS, REPS, NBI DANE y resguardos), y una prescriptiva que despacha brigadas optimizando rutas y equidad constitucional.'' \\
+1:00--2:00 &
+``Construimos un panel de 5.610 observaciones (1.122 municipios $\times$ 5 años). Entrenamos cuatro clasificadores con split agrupado por municipio para evitar fuga de información temporal. El mejor fue \textbf{HistGradientBoosting} con un F1 de 0,6234, ROC-AUC de 0,7848 y una precisión del 74,13\%: 3 de cada 4 municipios marcados como prioritarios realmente carecen de atención suficiente.'' \\
+2:00--3:00 &
+``La probabilidad del modelo alimenta un MILP resuelto con HiGHS. Desde el Hospital Rosario Pumarejo en Valledupar, con 4 brigadas, el modelo asignó Pueblo Bello y Becerril por cuota ética de resguardos, y Astrea y Chimichagua por alto déficit asistencial. Contamos con una demo en consola (\code{probar_ia.py}) que predice en milisegundos sin reentrenar.'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Banco de preguntas del profesor}
+% ============================================================
+
+\rowcolors{2}{gris!12}{white}
+\begin{longtable}{@{}L{5.95cm} L{10.05cm}@{}}
+\toprule
+\textbf{Pregunta} & \textbf{Respuesta corta} \\
+\midrule
+\endhead
+¿Qué es una fila? &
+Un municipio en un año; 1.122 $\times$ 5 = 5.610. \\
+¿Qué es \code{prioridad_alta}? &
+Tercio superior de la brecha de consultas contra municipios del mismo tamaño y año. \\
+¿Por qué 33\% de positivos? &
+Por construcción: es el percentil 66 de la brecha. No es prevalencia real. \\
+¿Hay fuga de datos? &
+No usamos volumen, tasas, benchmark ni brecha. El split es por municipio. Salvedad: imputación de medianas sobre todo el dataset y CV no agrupada. \\
+¿Por qué HGB? &
+Mejor F1 (0,623) y PR-AUC (0,741); captura no linealidades y es robusto. \\
+¿Qué significa ROC-AUC 0,785? &
+Probabilidad de ordenar un positivo por encima de un negativo al azar. \\
+¿Qué significa recall 0,538? &
+Detecta 149 de 277 prioritarios; se le escapan 128. \\
+¿Por qué no accuracy? &
+El Dummy tiene 66,1\% de accuracy y F1 = 0; la clase negativa domina. \\
+¿Por qué Pueblo Bello entra con 36,9\%? &
+Por la cuota de equidad: mínimo dos municipios con resguardos. \\
+¿Por qué MILP si el modelo ya ordena? &
+El modelo puntúa; el MILP decide un portafolio factible con presupuesto, distancia y equidad. \\
+¿Es ruteo? &
+No: es asignación de brigadas a municipios. El ruteo de vehículos es trabajo futuro. \\
+¿Qué mejorarías? &
+GroupKFold por municipio, usar validación, imputar solo con train, calibrar probabilidades y validar con años externos. \\
+¿Por qué 27 y no 74? &
+Las 74 columnas incluyen identificadores, volumen, tasas y derivadas del target. Las 27 son contexto estructural y perfil de morbilidad. \\
+¿Por qué solo cinco CIE-10? &
+Materno, infeccioso, respiratorio, digestivo y contacto con servicios son los más relevantes para brigadas; los otros 21 añaden ruido. \\
+¿Usaron el set de validación? &
+La selección fue con CV=3 sobre train; validación queda para calibrar el umbral y la siguiente iteración. \\
+¿Cómo funciona la demo? &
+Carga el parquet y el modelo HGB ya entrenados, filtra el municipio en 2021 y muestra probabilidad y recomendación. No reentrena. \\
+¿Por qué $\ln(V_i + 1)$ en el MILP y no $V_i$ lineal? &
+Modela rendimientos decrecientes; evita que un municipio gigante monopolice las brigadas y premia la equidad distributiva. \\
+¿Cómo definieron $\lambda = 0{,}005$? &
+Pondera el costo de viaje frente al impacto. A 200 km penaliza 1,0 punto al score; permite viajes lejanos solo si la vulnerabilidad es alta. \\
+¿Por qué Haversine y no rutas viales? &
+Haversine es determinista, autónoma y reproducible sin depender de servicios web ni costos de API; en Fase 3 se integrará matriz OSRM. \\
+¿Qué pasaría si bajan el umbral a 0,35? &
+El recall aumentaría por encima del 75\%, capturando más municipios desatendidos, a cambio de aceptar más falsas alarmas (menor precisión). \\
+¿Cómo se calculó la población vulnerable $V_i$? &
+Suma directa de población rural dispersa (Censo DANE 2018 / PPED) más población censada en resguardos indígenas (MinInterior). \\
+¿Por qué imputaron medianas en CIE-10? &
+Menos del 0,5\% de registros presentaban ausencia en diagnósticos secundarios; la mediana previene ceros espurios y distorsiones. \\
+¿Qué solver resuelve el MILP? &
+HiGHS mediante \code{scipy.optimize.linprog}, solver de programación lineal entera de alto desempeño basado en simplex dual paralelizado. \\
+¿El sistema se puede aplicar a otros departamentos? &
+Sí; el panel contiene los 1.122 municipios de Colombia y basta con indicar las coordenadas del hospital base departamental. \\
+¿Por qué no incluyeron la distancia dentro del modelo predictivo? &
+Porque la necesidad de salud es intrínseca a la población del municipio; la distancia a la base es un costo logístico prescriptivo, no un síntoma clínico. \\
+\bottomrule
+\end{longtable}
+
+% ============================================================
+\section{Errores que no debes decir}
+% ============================================================
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{7.0cm} Y@{}}
+\toprule
+\textbf{No digas} & \textbf{Di} \\
+\midrule
+``El modelo acierta el 78\% de los prioritarios'' &
+``Tiene 77,97\% de accuracy global y detecta el 53,8\% de los prioritarios.'' \\
+``18M de atenciones'' &
+``1.800 millones de atenciones.'' \\
+``1.122 municipios entrenados'' &
+``785 municipios en train; 1.122 es el total del dataset.'' \\
+``Cero data leakage'' &
+``Sin fuga directa; hay salvedades metodológicas que reconocemos.'' \\
+``Dummy azar'' &
+``Dummy \code{most_frequent}: predice siempre la clase mayoritaria.'' \\
+``El modelo decide las brigadas'' &
+``El modelo predice la probabilidad de déficit asistencial; el MILP decide la asignación óptima de brigadas.'' \\
+``Estas variables causan la prioridad'' &
+``Estas variables son las más asociadas en el ensamble; no implican relación causal.'' \\
+``El 33\% de Colombia tiene déficit crítico'' &
+``El 33\% es el tercio superior de una brecha relativa construida frente a pares poblacionales.'' \\
+``Hacemos ruteo de vehículos'' &
+``Hacemos asignación y despacho de portafolio; el ruteo de vehículos es trabajo de la Fase 3.'' \\
+``Usamos el set de validación para elegir hiperparámetros'' &
+``La selección fue con CV=3 sobre train; validación queda reservada para calibrar umbrales y la siguiente iteración.'' \\
+``Excluimos RIPS por fuga'' &
+``Excluimos volumen y tasas directas de consultas; conservamos los porcentajes diagnósticos CIE-10 como perfil epidemiológico.'' \\
+``El MILP calcula las mejores carreteras'' &
+``El MILP asigna municipios minimizando distancia ortodrómica Haversine; no optimiza rutas sobre la red vial terrestre.'' \\
+``La precisión o el recall son malos'' &
+``La precisión es sólida (74,13\%: 3 de cada 4 alertas son reales); el recall moderado (53,79\%) refleja un umbral conservador de 0,5.'' \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================
+\section{Auditoría y preparación diapositiva a diapositiva (Pitch Deck)}
+% ============================================================
+
+A continuación se audita el contenido de las 13 diapositivas de la presentación oficial de la Fase~2 (\code{IA - SEGUNDA FASE.pdf}), indicando qué mensajes transmitir, qué trampas evitar y qué preguntas esperar del jurado en cada lámina.
+
+\subsection{Lámina 1: Portada Institucional}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Título oficial del proyecto, participantes (Jorman Noriega, Julio Ríos, Gabriel Venegas), docente Tonny Jiménez, Universidad Popular del Cesar, Valledupar, 2026.
+  \item \textbf{Qué decir:} ``Presentamos el sistema inteligente de priorización y optimización espacial de brigadas de salud extramurales para comunidades indígenas y rurales dispersas, correspondiente a la Fase~2 del proyecto de aula de Inteligencia Artificial.''
+  \item \textbf{Cuidado:} Mantener seguridad, postura erguida y modular la voz desde el primer segundo.
+\end{itemize}
+
+\subsection{Lámina 2: Planteamiento del Problema}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Solicitudes informales, presupuestos fijos, 1. Inequidad en cobertura, 2. Uso ineficiente de recursos, 3. Falta de predictibilidad epidemiológica.
+  \item \textbf{Qué decir:} ``El despacho actual de brigadas en Colombia adolece de tres fallas estructurales: se basa en solicitudes informales o presiones coyunturales, genera gasto ineficiente en traslados y no anticipa el déficit crónico en comunidades dispersas.''
+  \item \textbf{Cuidado:} No culpar a una entidad particular; presentar el problema como una oportunidad de mejora cuantitativa en la gestión pública.
+\end{itemize}
+
+\subsection{Lámina 3: Enfoque Metodológico}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Aplicada, Cuantitativa, Correlacional-Explicativa, CRISP-DM adaptada a salud.
+  \item \textbf{Qué decir:} ``Es una investigación aplicada y cuantitativa. Analizamos la correlación entre capacidad instalada, pobreza estructural y demanda médica para alimentar un pipeline basado en CRISP-DM.''
+  \item \textbf{Trampa a evitar:} Si la diapositiva dice ``Relaciones Causa-Efecto'', aclara inmediatamente: \textbf{``Analizamos correlaciones y patrones predictivos; no establecemos relaciones de causalidad médica directa, pues trabajamos con datos observacionales agregados.''}
+\end{itemize}
+
+\subsection{Lámina 4: Materia Prima (Datos Abiertos 100\% Oficiales)}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} DIVIPOLA, RIPS, REPS, Resguardos MinInterior, Pobreza NBI Censo 2018, Proyecciones PPED DANE.
+  \item \textbf{Qué decir:} ``Integramos seis fuentes oficiales del Estado colombiano para conformar un panel analítico municipal de 5.610 observaciones y 74 variables con centroides GPS 100\% validados.''
+  \item \textbf{Correcciones obligatorias en la exposición:}
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{4.2cm} Y@{}}
+\toprule
+\textbf{Dice la lámina} & \textbf{Debes decir oralmente} \\
+\midrule
+``782 municipios'' &
+``1.122 municipios totales a nivel nacional (785 conformaron el conjunto de entrenamiento).'' \\
+``18 mil millones de atenciones'' &
+``1.800 millones de atenciones registradas en RIPS entre 2017 y 2021.'' \\
+``14 dimensiones de vulnerabilidad'' &
+``14 indicadores de NBI construidos sobre las 5 necesidades básicas del DANE.'' \\
+``causas CIE-10'' &
+``perfil de diagnósticos CIE-10 (RIPS registra diagnósticos atendidos, no causas básicas).'' \\
+``delimitación de resguardos'' &
+``conteo de resguardos y población censada en resguardos (datos tabulares, no polígonos).'' \\
+``DANE / MinSalud'' para DIVIPOLA &
+``DANE: DIVIPOLA es la codificación oficial de la autoridad estadística nacional.'' \\
+Ligaduras rotas (\textit{geográ cos}) &
+Pronunciar correctamente: ``geográficos oficiales''. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Lámina 5: El Secreto del Target: Equidad Territorial}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Fórmula de tasa de consultas por 1.000 hab, benchmark por quintil poblacional (\code{banda_pob}), brecha asistencial relativa, umbral percentil 66 ($0{,}337$).
+  \item \textbf{Qué decir:} ``No comparamos un caserío rural contra Bogotá o Medellín. Comparamos cada municipio contra sus pares de tamaño similar en el mismo año. Aislamos los prestadores de referencia regional (\textit{hubs}) y etiquetamos como prioridad alta al tercio con mayor brecha (percentil 66).''
+  \item \textbf{Pregunta típica:} ``¿Por qué hay 33,3\% de positivos?'' $\rightarrow$ ``Por definición matemática del percentil 66, no por prevalencia epidemiológica.''
+\end{itemize}
+
+\subsection{Lámina 6: Partición 70 / 15 / 15 Agrupada por Municipio}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Train 70\% (785 municipios, 3.770 válidos), Val 15\% (168 municipios, 807 válidos), Test 15\% (169 municipios, 817 válidos).
+  \item \textbf{Qué decir:} ``La partición se agrupó por código municipal (\code{cod_mpio}). Ningún municipio del conjunto de prueba ciego fue visto jamás por el modelo durante el entrenamiento, garantizando una evaluación rigurosa de generalización territorial.''
+  \item \textbf{Honestidad académica:} ``Reconocemos dos salvedades técnicas: la imputación de medianas fue global y la validación cruzada de GridSearchCV no agrupó por municipio; ambas se corrigen en la Fase~3.''
+\end{itemize}
+
+\subsection{Lámina 7: Torneo de Modelos: HistGradientBoosting es el Ganador}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Tabla comparativa de los cuatro clasificadores (Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC).
+  \item \textbf{Qué decir:} ``HistGradientBoosting superó ampliamente a la Regresión Logística y al Random Forest, alcanzando un F1 de 0,6234, ROC-AUC de 0,7848 y una precisión del 74,13\%. En el Dummy baseline demostramos que una accuracy del 66,1\% es ficticia porque no detecta ningún caso crítico.''
+  \item \textbf{Dato a enfatizar:} ``El modelo acierta 3 de cada 4 alertas de prioridad (precisión 74,13\%), optimizando el uso de recursos fiscales limitados.''
+\end{itemize}
+
+\subsection{Lámina 8: Importancia de Variables (Gini)}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Gráfica de importancia del Random Forest; dominancia de diagnósticos maternos (\code{pct_cap_O}), población en resguardos y NBI rural.
+  \item \textbf{Qué decir:} ``El ensamble prioriza municipios combinando demanda obstétrica e infecciosa con pobreza estructural: el bloque de NBI concentra el 42\% de la importancia total y el perfil CIE-10 el 26\%.''
+  \item \textbf{Aclaración clave:} ``Gini mide reducción de impureza en las divisiones de los árboles; indica asociación estadística predictiva, no causalidad médica.''
+\end{itemize}
+
+\subsection{Lámina 9: Inteligencia Prescriptiva (MILP)}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Función objetivo con $\ln(V_i + 1) - \lambda d_i$ y restricciones de flota ($K=4$), cuota indígena ($M=2$) y radio operativo ($D_{\max}=350$ km).
+  \item \textbf{Qué decir:} ``La inteligencia prescriptiva cierra la brecha entre la predicción y la acción logística. Formulamos un MILP resuelto con HiGHS que maximiza la cobertura de vulnerabilidad penalizando la distancia de traslado desde la base operativa.''
+  \item \textbf{Cuidado:} Dejar claro que es \textbf{asignación óptima de portafolio}, no ruteo de caminos.
+\end{itemize}
+
+\subsection{Lámina 10: Demostración Operativa en el Cesar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Tabla de despacho desde el Hospital Rosario Pumarejo de Valledupar: Pueblo Bello (36,9\% prob, 2 resguardos, 86,6\% NBI rural), Becerril (45,8\%, 2 resguardos), Astrea (90,9\% prob), Chimichagua (75,0\% prob).
+  \item \textbf{Qué decir:} ``El solver cumplió con exactitud la cuota ética asignando Pueblo Bello y Becerril en la Sierra Nevada y el Perijá, y asignó las dos brigadas restantes a Astrea y Chimichagua por su crítico abandono ambulatorio.''
+\end{itemize}
+
+\subsection{Lámina 11: Demostración Funcional en Consola}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Captura de ejecución de \code{probar_ia.py} y \code{optimizacion_milp.py}.
+  \item \textbf{Qué decir:} ``Diseñamos una herramienta de consola reproducible que recupera el vector municipal de 27 variables y emite la predicción y el plan en milisegundos sin necesidad de reentrenar.''
+\end{itemize}
+
+\subsection{Lámina 12: Limitaciones Reconocidas del Enfoque}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Cuatro limitaciones técnicas bien definidas.
+  \item \textbf{Qué decir:} ``Reconocemos con rigor científico nuestras limitaciones: RIPS agrega consultas por sede del prestador y no por residencia del paciente; la distancia es ortodrómica Haversine; y la validación no se usó para early stopping ni calibración de umbrales.''
+\end{itemize}
+
+\subsection{Lámina 13: Hoja de Ruta para Fase 3 y Conclusiones}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Contenido visual:} Aplicación web en Streamlit con mapas Folium, calibración de umbrales con validación, ruteo OSRM por carreteras y video pitch de 3 minutos.
+  \item \textbf{Qué decir:} ``La Fase~2 dejó el núcleo matemático y algorítmico completamente probado. En la Fase~3 integraremos la interfaz interactiva con mapas satelitales para que las Secretarías de Salud tomen decisiones basadas en datos en tiempo real.''
+\end{itemize}
+
+% ============================================================
+\section{Mapa de evidencia y comandos}
+% ============================================================
+
+\subsection{Dónde verificar cada afirmación}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}L{6.2cm} Y@{}}
+\toprule
+\textbf{Afirmación} & \textbf{Dónde verificarla} \\
+\midrule
+5.610 filas, 74 columnas, 1.122 municipios &
+\code{fase 1 api/data/modelo/municipio_anio.parquet} y \code{fase 1 api/fase 1/docs/diccionario_datos.md}. \\
+Target y split &
+\code{fase 1 api/fase 1/src/build_tabla_modelo.py}, líneas 38--56 y 120--154. \\
+27 features &
+\code{fase 1 api/fase 2/src/modelado.py}, líneas 36--69. \\
+Métricas y matriz de confusión &
+\code{fase 1 api/fase 2/reportes/metricas_comparacion.csv} y \code{matriz_confusion_modelos.png}. \\
+Importancia de variables &
+\code{fase 1 api/fase 2/reportes/importancia_variables_rf.png}. \\
+MILP &
+\code{fase 1 api/fase 2/src/optimizacion_milp.py}, líneas 34--128. \\
+Demo &
+\code{fase 1 api/fase 2/src/probar_ia.py}. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Comandos para reproducir la demo}
+
+\begin{verbatim}
+cd "fase 1 api"
+python "fase 2/src/probar_ia.py" "Valledupar"
+python "fase 2/src/probar_ia.py" "Pueblo Bello"
+python "fase 2/src/optimizacion_milp.py"
+\end{verbatim}
+
+\subsection{Cómo compilar este documento}
+
+\begin{verbatim}
+cd "guia_estudio"
+pdflatex guia_estudio_fase2.tex
+pdflatex guia_estudio_fase2.tex
+\end{verbatim}
+
+% ============================================================
+\appendix
+\section{Glosario}
+% ============================================================
+
+\begin{description}[leftmargin=*,style=nextline,itemsep=4pt]
+  \item[Municipio--año] Una fila del dataset: un municipio en un año concreto.
+  \item[Hub] Prestador de referencia regional cuya tasa de consultas es al menos 3 veces la mediana de su banda. Se excluye del entrenamiento.
+  \item[NBI] Necesidades Básicas Insatisfechas. Mide pobreza multidimensional con cinco componentes: vivienda, servicios, hacinamiento, inasistencia escolar y dependencia económica.
+  \item[CIE-10] Clasificación Internacional de Enfermedades, décima revisión. En el dataset se usan porcentajes por capítulo diagnóstico.
+  \item[Gini importance] Reducción media de impureza que aporta una variable en un bosque aleatorio. No es causalidad.
+  \item[MILP] Programación Lineal Entera Mixta. Optimiza una función objetivo con variables binarias y restricciones lineales.
+  \item[Haversine] Distancia geodésica entre dos puntos de la Tierra a partir de latitud y longitud.
+  \item[Precision] De los municipios que el modelo marca como prioritarios, qué proporción realmente lo son.
+  \item[Recall] De los municipios que realmente son prioritarios, qué proporción detecta el modelo.
+  \item[F1] Media armónica entre precision y recall.
+  \item[ROC-AUC] Probabilidad de que el modelo ordene un positivo por encima de un negativo al azar.
+  \item[PR-AUC] Área bajo la curva precision--recall; útil cuando la clase positiva es minoritaria.
+  \item[Data leakage] Uso de información que no estará disponible al predecir, o que contiene la respuesta.
+  \item[Split] Partición train/validación/test. En este proyecto se hace por municipio para evitar fuga.
+\end{description}
+
+\section{Checklist de archivos}
+
+\begin{itemize}[leftmargin=*,label=$\square$]
+  \item \code{municipio_anio.parquet} existe y tiene 5.610 filas.
+  \item \code{diccionario_datos.md} está actualizado.
+  \item \code{modelado.py} contiene las 27 features.
+  \item \code{metricas_comparacion.csv} tiene los cuatro modelos.
+  \item \code{matriz_confusion_modelos.png} y \code{curva_roc_comparacion.png} existen.
+  \item \code{optimizacion_milp.py} corre y genera \code{asignacion_brigadas_optima.csv}.
+  \item \code{probar_ia.py} responde para Valledupar, Pueblo Bello y Astrea.
+  \item \code{documento.pdf} de la Fase~2 tiene 12 páginas.
+  \item Esta guía compila sin errores.
+\end{itemize}
+
+\vfill
+\begin{center}
+\small\color{grisoscuro}
+Guía de estudio y defensa --- Fase 2\\
+Universidad Popular del Cesar --- Ingeniería de Sistemas e Informática\\
+2026
+\end{center}
+
+\end{document}
