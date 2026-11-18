@@ -39,13 +39,12 @@
     {\normalsize \textbf{FACULTAD DE INGENIERÍAS Y TECNOLOGÍAS}}\\[0.3cm]
     {\normalsize \textbf{PROGRAMA DE INGENIERÍA DE SISTEMAS}}\\[2.0cm]
     
-    {\large \textbf{SISTEMA DE PRIORIZACIÓN DE BRIGADAS DE SALUD EXTRAMURALES PARA COMUNIDADES INDÍGENAS Y RURALES DISPERSAS}}\\[0.4cm]
-    {\normalsize \textit{Documento Técnico de Avance -- Segunda Fase (Segundo Corte)}}\\[2.0cm]
+    {\large \textbf{SISTEMA DE PRIORIZACIÓN DE BRIGADAS DE SALUD EXTRAMURALES PARA COMUNIDADES INDÍGENAS Y RURALES DISPERSAS}}\\[0.6cm]
+    
     
     {\normalsize \textbf{PRESENTADO POR:}}\\[0.4cm]
     {\normalsize JORMAN DAVID NORIEGA DÁVILA}\\
-    {\normalsize JULIO CESAR RIOS MALDONADO}\\
-    {\normalsize GABRIEL OMAR VENEGAS GONZÁLEZ}\\[1.0cm]
+    {\normalsize JULIO CESAR RIOS MALDONADO}\\[1.0cm]
     
     {\normalsize \textbf{ASIGNATURA:}}\\
     {\normalsize INTELIGENCIA ARTIFICIAL}\\[0.4cm]
@@ -79,13 +78,13 @@ No obstante, la planeación y el despliegue de estos operativos móviles suelen 
 \section{Estado del Arte}
 
 \subsection{Internacional}
-La optimización espacial de clínicas móviles de salud ha cobrado relevancia en la literatura científica reciente. Tanim et al. (2026) desarrollaron un marco de localización-asignación tipo \textit{Maximal Coverage Location Problem} (MCLP) para el despliegue de clínicas móviles en entornos rurales, demostrando un incremento del 90\% en la cobertura poblacional mediante la relocalización sistemática basada en tiempos de viaje. Por su parte, Callaghan et al. (2025) abordaron la planificación de clínicas móviles en la región de Witzenberg (Sudáfrica) implementando un modelo jerárquico de enrutamiento de vehículos con ventanas de tiempo (m-VRPTW) y programación entera para balancear la fatiga del personal médico y minimizar las distancias recorridas.
+Rabiou et al. (2024), en el artículo ``Mobile outreach clinics for improving health care services accessibility in vulnerable populations of the Diffa Region in Niger'', publicado en \textit{International Journal for Equity in Health}, analizaron la implementación de clínicas móviles para mejorar el acceso a la salud de poblaciones vulnerables de la región de Diffa, Níger. Este estudio descriptivo-comparativo se desarrolló entre agosto y octubre de 2022 en cinco distritos: Bosso, Diffa, Goudoumaria, Mainé Soroa y N’guigmi. Durante la intervención se sensibilizó a 42\,251 personas, se atendió a 12\,004 y se administraron 18\,708 dosis de vacunas a niños de 0 a 11 meses, además de ofrecer servicios preventivos y curativos. Los resultados reportaron diferencias entre las rotaciones de las clínicas móviles, incluido un aumento de la vacunación infantil y de la asistencia a controles prenatales. Los autores concluyen que estas clínicas pueden mejorar el acceso en poblaciones vulnerables, siempre que las intervenciones se planifiquen con frecuencia y se incorporen a las políticas de salud pública. Este antecedente respalda la utilización de brigadas extramurales para atender comunidades dispersas y evidencia la importancia de considerar la vulnerabilidad territorial y la planificación logística al asignarlas \cite{ref8}.
 
 \subsection{Nacional}
-En el contexto latinoamericano y colombiano, Roy y Kar (2022) introdujeron un marco de análisis de decisión multicriterio (MCDA) combinado con análisis de rutas de menor costo para cuantificar las barreras socioeconómicas y geográficas en el acceso a servicios de salud. En Colombia, el uso secundario de las bases de datos masivas del Sistema General de Seguridad Social en Salud (SGSSS), como el Registro de Prestadores (REPS) y los Registros Individuales de Prestación de Servicios (RIPS), ha sido propuesto como insumo estratégico para caracterizar la brecha territorial en zonas ZOMAC y municipios PDET \cite{ref5}.
+Mejía, Oviedo-Benalcázar, Ordoñez y Valencia (2023), en el artículo ``Aprendizaje automático aplicado a la predicción de diabetes mellitus, utilizando información socioeconómica y ambiental de usuarios del sistema de salud'', publicado en la \textit{Revista Facultad Nacional de Salud Pública} de la Universidad de Antioquia, aplicaron técnicas de aprendizaje automático para apoyar la predicción de diabetes mellitus en usuarios de ASMET Salud del régimen subsidiado en el suroccidente colombiano. Con información ambiental, social, económica y sanitaria de 10\,889 usuarios previamente diagnosticados con hipertensión arterial, clasificaron a quienes presentaban o no diabetes. Evaluaron modelos supervisados como k vecinos más cercanos, árboles de decisión, bosques aleatorios y métodos de ensamble. Los resultados mostraron que el desbalance de clases afectaba la sensibilidad; al balancear los datos esta mejoró, y el mayor valor de área bajo la curva ROC fue 0,61 con un modelo XGBoost. Entre las variables relevantes se identificaron los antecedentes familiares de diabetes, el grupo étnico y factores relacionados con hábitos y condiciones de vida. Este antecedente es pertinente al proyecto porque demuestra cómo los datos socioeconómicos, ambientales y sanitarios pueden apoyar la identificación de grupos prioritarios; de forma análoga, el sistema integra variables demográficas, epidemiológicas y geográficas para orientar la asignación de brigadas hacia comunidades vulnerables con menor acceso a los servicios de salud \cite{ref9}.
 
 \subsection{Local}
-En el departamento del Cesar y la región de la Sierra Nevada de Santa Marta y la Serranía del Perijá, la dispersión de comunidades indígenas (pueblos Arhuaco, Wiwa, Kankuamo y Yukpa) plantea retos logísticos severos. La ausencia de vías pavimentadas y la dependencia de transporte fluvial o trochas de herradura demandan herramientas computacionales que optimicen las rutas de salida desde las cabeceras municipales y hospitales de referencia regional como el Hospital Rosario Pumarejo de López en Valledupar. Para cuantificar estas barreras se adopta el enfoque multicriterio y de rutas de menor costo propuesto por Roy y Kar \cite{ref3}.
+La ubicación dispersa de los pueblos Arhuaco, Wiwa, Kankuamo y Yukpa dificulta la organización de las jornadas médicas en Cesar y en los territorios de la Sierra Nevada de Santa Marta y la Serranía del Perijá. En estas zonas, la falta de vías pavimentadas y los desplazamientos por ríos o caminos de herradura condicionan el traslado de los equipos de salud. Por ello, resulta pertinente disponer de herramientas que apoyen la planificación de las salidas desde las cabeceras municipales y los centros hospitalarios de referencia. Uno de estos centros es el Hospital Rosario Pumarejo de López, ubicado en Valledupar. El análisis de las barreras territoriales toma como referencia la propuesta de Roy y Kar, que combina criterios de acceso con rutas de menor costo \cite{ref3}.
 
 % ============================================================
 % PLANTEAMIENTO DEL PROBLEMA
@@ -104,13 +103,13 @@ La asignación tradicional de brigadas de salud extramurales en Colombia adolece
 \section{Objetivos}
 
 \subsection{Objetivo General}
-Desarrollar un sistema inteligente de priorización y optimización espacial, basado en modelos de \textit{scoring}, analítica predictiva de demanda y programación lineal, para planificar la asignación de brigadas de salud extramurales en comunidades indígenas y rurales dispersas.
+Construir una herramienta que apoye la planificación de brigadas de salud extramurales dirigidas a comunidades indígenas y rurales dispersas, mediante la integración de modelos de \textit{scoring}, analítica predictiva de demanda y programación lineal para priorizar territorios y optimizar su asignación espacial.
 
 \subsection{Objetivos Específicos}
 \begin{enumerate}[label=\arabic*.]
     \item Consolidar y preprocesar las bases de datos oficiales de demanda médica (RIPS), infraestructura (REPS), contexto étnico (MinInterior) e indicadores de Necesidades Básicas Insatisfechas (DANE) a nivel municipal.
     \item Desarrollar un análisis exploratorio de datos (EDA) georreferenciado para identificar patrones de vulnerabilidad, dispersión sanitaria y puntos de referencia hospitalaria (\textit{hubs}).
-    \item Formular, calibrar y evaluar modelos de \textit{Machine Learning} supervisado para estimar la probabilidad de déficit asistencial y priorización de brigadas.
+    \item Estimar la probabilidad de déficit asistencial mediante la formulación, el ajuste y la evaluación de modelos supervisados de \textit{Machine Learning}, como insumo para priorizar la asignación de brigadas.
     \item Diseñar e implementar un modelo de optimización prescriptiva (Programación Lineal Entera Mixta - MILP) que determine el despacho óptimo de brigadas bajo restricciones logísticas y de equidad territorial.
     \item Construir un prototipo interactivo con soporte de mapas para apoyar la toma de decisiones operativas de las Secretarías de Salud.
 \end{enumerate}
@@ -129,26 +128,26 @@ Asimismo, desde el punto de vista logístico, planificar los despachos desde bas
 \section{Metodología}
 
 \subsection{Tipo y Enfoque de Investigación}
-La investigación es de carácter \textbf{aplicado, cuantitativo y correlacional-explicativo}:
+El enfoque del trabajo es \textbf{aplicado, cuantitativo y correlacional-explicativo}. Sus características se describen a continuación:
 \begin{itemize}
     \item \textbf{Aplicada:} Plantea una solución directa y computable a un problema operativo del sector salud en Colombia.
     \item \textbf{Cuantitativa:} Utiliza indicadores empíricos oficiales, registros masivos de atenciones médicas, censos demográficos y formulaciones matemáticas.
     \item \textbf{Correlacional:} Analiza la asociación entre la infraestructura fija instalada, el grado de dispersión territorial, la pobreza multidimensional y el desabastecimiento de atención primaria, sin pretender establecer relaciones de causalidad.
 \end{itemize}
 
-\subsection{Método de la Investigación}
-Se adoptó la metodología estándar \textbf{CRISP-DM} (\textit{Cross-Industry Standard Process for Data Mining}), adaptada específicamente para analítica en salud pública y optimización logística:
+\subsection{Ciclo de Vida del Desarrollo}
+El desarrollo se organiza en cinco etapas: \textbf{análisis, diseño, implementación, pruebas y simulación}. Como marco complementario para el componente de datos se utiliza CRISP-DM (\textit{Cross-Industry Standard Process for Data Mining}). Esta organización permite explicar el paso a paso del proyecto y relacionar cada actividad con sus entregables:
 \begin{enumerate}
-    \item \textbf{Comprensión del Negocio/Dominio:} Caracterización de los lineamientos del Ministerio de Salud para equipos extramurales y formulación del benchmark de brecha asistencial relativa por quintiles de población.
-    \item \textbf{Comprensión y Extracción de Datos:} Integración de 6 fuentes de datos abiertos oficiales del Estado Colombiano (SODA v3 y DANE).
-    \item \textbf{Preparación de Datos:} Depuración de coordenadas GPS decimales, imputación de medianas para causas CIE-10 atípicas y estructuración del panel analítico (5.610 filas $\times$ 74 columnas).
-    \item \textbf{Modelado Predictivo y Prescriptivo:} Entrenamiento de algoritmos de clasificación supervisada y formulación del modelo MILP.
-    \item \textbf{Evaluación:} Validación cruzada sobre el conjunto de entrenamiento (partición aleatoria de 3 pliegues, no agrupada por municipio) y evaluación final en un conjunto de prueba ciego (\textit{Test Set}) agrupado por municipio, de modo que ningún territorio evaluado fue observado durante el ajuste.
-    \item \textbf{Despliegue (Fase 3):} Empaquetamiento de los modelos en una aplicación web interactiva con mapas satelitales.
+    \item \textbf{Análisis:} Delimitación del problema, identificación de necesidades y revisión de las fuentes, variables y requisitos funcionales.
+    \item \textbf{Diseño:} Definición del flujo de datos, la partición municipal, los componentes predictivo y prescriptivo y las restricciones de asignación.
+    \item \textbf{Implementación:} Construcción del panel, entrenamiento de clasificadores, serialización de modelos e integración del optimizador y la consulta por consola.
+    \item \textbf{Pruebas:} Evaluación cuantitativa de los modelos sobre municipios de prueba, análisis de errores y delimitación de las pruebas funcionales aún pendientes.
+    \item \textbf{Simulación:} Aplicación del sistema al escenario del Cesar, revisión de la asignación y documentación de parámetros, resultados y limitaciones.
 \end{enumerate}
+Las etapas constituyen un ciclo iterativo: los errores identificados durante las pruebas y las restricciones observadas en la simulación orientan ajustes al análisis, al diseño y a la implementación. No se presenta como concluido un despliegue web.
 
 \subsection{Fases del Proyecto de Aula}
-El proyecto se estructuró en tres etapas cronológicas: la \textbf{Fase I} consolidó la extracción ETL, la limpieza de centroides geográficos y el panel municipal 2017--2021; la \textbf{Fase II}, objeto de este documento, abordó la partición agrupada, el ajuste de hiperparámetros, la evaluación comparativa de clasificadores y la resolución del MILP; la \textbf{Fase III} comprenderá el prototipado, la interfaz cartográfica y el despliegue del sistema.
+Los cortes académicos no deben confundirse con las etapas del ciclo de vida. La \textbf{Fase I} aportó la extracción ETL, el análisis exploratorio y el panel municipal 2017--2021; la \textbf{Fase II} aportó el entrenamiento, la evaluación de clasificadores y el modelo MILP. Para la \textbf{Fase III}, estos componentes se integran en la explicación del ciclo de vida y en la demostración del prototipo. La interfaz cartográfica, las pruebas funcionales completas y el despliegue web continúan pendientes de implementación o documentación.
 
 \subsection{Actividades a Desarrollar por Cada Objetivo Específico}
 La Tabla~\ref{tab:actividades} detalla el plan metodológico ejecutado y proyectado para garantizar el cumplimiento de cada uno de los objetivos específicos formulados.
@@ -183,50 +182,169 @@ Script \texttt{optimizacion\_milp.py}; plan de despacho (\texttt{asignacion\_bri
 \end{tabular}
 \end{table}
 
-\subsection{Partición de Datos 70 / 15 / 15 Agrupada}
-Para prevenir la autocorrelación intra-municipal entre años consecutivos (evitando el \textit{Data Leakage} o fuga de información temporal), la división se ejecutó sobre los códigos únicos municipales (\texttt{cod\_mpio}):
-\begin{itemize}
-    \item \textbf{Train (70\%):} 785 municipios completos $\rightarrow$ 3.925 registros panel (3.770 válidos tras aislar \textit{hubs}).
-    \item \textbf{Validation (15\%):} 168 municipios completos $\rightarrow$ 840 registros panel (807 válidos).
-    \item \textbf{Test Ciego (15\%):} 169 municipios completos $\rightarrow$ 845 registros panel (817 válidos).
-\end{itemize}
-
 % ============================================================
-% RESULTADOS Y MODELADO (FASE 2)
+% EXPLICACIÓN DETALLADA DE LA REALIZACIÓN DEL PROYECTO
 % ============================================================
-\section{Desarrollo, Modelado y Evaluación Cuantitativa (Fase 2)}
+\section{Desarrollo del Proyecto por Etapas del Ciclo de Vida}
 
-\subsection{Evaluación Comparativa de Modelos de Machine Learning}
-Se evaluaron cuatro enfoques algorítmicos en el conjunto de prueba ciego (\textit{Test Set}), garantizando que el modelo evaluara territorios que jamás observó durante la etapa de entrenamiento. Los resultados cuantitativos se exponen en la Tabla~\ref{tab:metricas}.
+\subsection{Fase de Análisis}
+En esta fase se delimitó el problema de asignación de brigadas extramurales en municipios indígenas y rurales dispersos, donde las distancias, la vulnerabilidad social y la disponibilidad desigual de servicios pueden dificultar el acceso a la atención. Se identificó como necesidad principal contar con un mecanismo reproducible que apoye la priorización territorial y complemente los criterios operativos de las autoridades de salud.
 
-\begin{table}[htbp]
+Para construir el análisis se integraron registros de atención en salud (RIPS), información de prestadores (REPS), datos demográficos y de Necesidades Básicas Insatisfechas del DANE, y datos de resguardos indígenas. Las fuentes se consolidaron en un panel municipal por año. A partir de ellas se definieron variables de demanda, población, vulnerabilidad, infraestructura y ubicación geográfica. También se estableció una etiqueta de prioridad basada en la brecha relativa de consultas, excluyendo del ranking a los municipios identificados como centros de referencia hospitalaria (\textit{hubs}).
+
+La Tabla~\ref{tab:fuentes_analisis} relaciona los insumos con su función en la solución. La unidad de análisis es el municipio--año, no el paciente ni una comunidad individual; por tanto, las recomendaciones deben interpretarse a escala municipal.
+
+\begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{Evaluación comparativa de modelos en el conjunto de prueba ciego (Test Set).}
-\label{tab:metricas}
-\begin{tabular}{lcccccc}
+\small
+\caption{Fuentes y variables principales del análisis territorial.}
+\label{tab:fuentes_analisis}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.7cm}
+                    >{\raggedright\arraybackslash}p{5.5cm}
+                    >{\raggedright\arraybackslash}p{7cm}@{}}
 \toprule
-\textbf{Modelo Evaluado} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{ROC-AUC} & \textbf{PR-AUC} \\
+\textbf{Fuente} & \textbf{Información integrada} & \textbf{Uso en el proyecto} \\
 \midrule
-\textbf{HistGradientBoosting} & \textbf{0.7797} & \textbf{0.7413} & 0.5379 & \textbf{0.6234} & \textbf{0.7848} & \textbf{0.7414} \\
-Random Forest (Optimizado)    & 0.7283 & 0.6211 & 0.5090 & 0.5595 & 0.7653 & 0.6803 \\
-Regresión Logística           & 0.6573 & 0.4952 & \textbf{0.5596} & 0.5254 & 0.6920 & 0.5926 \\
-Dummy Baseline (Trivial)      & 0.6610 & 0.0000 & 0.0000 & 0.0000 & 0.5000 & 0.3390 \\
+DIVIPOLA & Código municipal, departamento, latitud y longitud. & Unificar identificadores y calcular distancias geodésicas desde la base operativa. \\
+RIPS & Consultas, urgencias, hospitalizaciones, procedimientos y proporciones por capítulo CIE-10. & Caracterizar la atención registrada y construir la brecha relativa de consultas. \\
+REPS & Sedes de salud, sedes públicas ESE y sedes por cada 10.000 habitantes. & Representar la oferta de infraestructura sanitaria. \\
+DANE & Población, porcentaje rural disperso e indicadores NBI totales y rurales. & Caracterizar tamaño poblacional, ruralidad y vulnerabilidad social. \\
+Contexto étnico & Número de resguardos, población en resguardos y comunidades registradas. & Incorporar el contexto indígena y definir la cuota de municipios con resguardos. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-El algoritmo \textbf{HistGradientBoosting} superó holgadamente a los demás enfoques con un \textbf{F1-Score de 0.6234}, un \textbf{ROC-AUC de 0.7848} y un área bajo la curva Precision-Recall (PR-AUC) de 0.7414. Resulta de especial relevancia su precisión de \textbf{74.13\%}: en un contexto de recursos públicos limitados, esto implica que aproximadamente 3 de cada 4 registros municipio--año clasificados como prioritarios corresponden efectivamente a un déficit asistencial, lo que reduce el riesgo de asignar brigadas a territorios no prioritarios.
+Los requisitos de la Tabla~\ref{tab:requisitos} se vinculan con artefactos existentes. Esta correspondencia describe el alcance implementado y no equivale a un registro de pruebas funcionales aprobadas.
 
-\subsection{Ajuste de Hiperparámetros}
-El proceso experimental se documenta en la Tabla~\ref{tab:tuning}. La Regresión Logística se empleó como línea base lineal con ponderación de clases balanceada y sin búsqueda de hiperparámetros; el Random Forest y el HistGradientBoosting se optimizaron mediante \textit{GridSearchCV} con validación cruzada de tres pliegues y criterio de selección F1-Score, evaluando respectivamente 12 y 24 combinaciones.
+\begin{table}[H]
+\centering
+\small
+\caption{Requisitos funcionales y soporte disponible.}
+\label{tab:requisitos}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1cm}
+                    >{\raggedright\arraybackslash}p{7.5cm}
+                    >{\raggedright\arraybackslash}p{6.7cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Requisito} & \textbf{Soporte en el repositorio} \\
+\midrule
+RF-01 & Integrar los datos territoriales mediante el código municipal y el año. & Panel \texttt{municipio\_anio.parquet} y versión CSV. \\
+RF-02 & Comparar clasificadores y conservar métricas de evaluación. & \texttt{modelado.py}, modelos serializados y reportes de métricas. \\
+RF-03 & Consultar un municipio por nombre o código y presentar su prioridad estimada. & \texttt{probar\_ia.py}; salida por consola. \\
+RF-04 & Seleccionar destinos de brigadas con límites de flota, distancia y cuota indígena. & \texttt{optimizacion\_milp.py}; parámetros de la función de asignación. \\
+RF-05 & Exportar el plan de asignación para su revisión. & Reporte CSV con municipios seleccionados y número de brigada. \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\begin{table}[htbp]
+\subsection{Fase de Diseño}
+Se diseñó una solución modular con dos componentes analíticos principales. El primero es predictivo: recibe las variables municipales procesadas y estima la probabilidad de que un municipio presente prioridad alta. El segundo es prescriptivo: utiliza dichas probabilidades, la población vulnerable y la distancia desde una base operativa para seleccionar los municipios que recibirían brigadas, sujeto a restricciones de flota, autonomía y cobertura mínima de resguardos.
+
+El flujo de datos diseñado es: integración y preparación de fuentes; construcción del panel municipal; predicción de prioridad; optimización de la asignación; y consulta de resultados. Esta separación permite evaluar el modelo predictivo y el optimizador por separado. La solución implementada incluye una demostración en consola para consultar municipios; la interfaz web cartográfica queda fuera del alcance de los artefactos disponibles actualmente.
+
+La Figura~\ref{fig:flujo_sistema} muestra el flujo lógico y las dos salidas del sistema: la consulta individual y la asignación de brigadas. Ambas reutilizan el modelo entrenado, pero la consulta por consola no ejecuta el optimizador.
+
+\begin{figure}[H]
+\centering
+\setlength{\fboxsep}{7pt}
+\small
+\begin{tabular}{c}
+\fbox{\parbox{12.5cm}{\centering\textbf{1. Fuentes oficiales}\\RIPS, REPS, DIVIPOLA, DANE y contexto étnico}}\\[2pt]
+$\downarrow$\\[2pt]
+\fbox{\parbox{12.5cm}{\centering\textbf{2. Preparación y panel municipal}\\Extracción, normalización e integración por municipio--año}}\\[2pt]
+$\downarrow$\\[2pt]
+\fbox{\parbox{12.5cm}{\centering\textbf{3. Modelado y evaluación}\\Comparación de clasificadores y conservación del modelo entrenado}}\\[2pt]
+$\downarrow$\\[2pt]
+\fbox{\parbox{12.5cm}{\centering\textbf{4. Inferencia con HistGradientBoosting}\\Variables municipales $\longrightarrow$ probabilidad de prioridad alta}}\\[2pt]
+$\swarrow$\hspace{7cm}$\searrow$\\[2pt]
+\begin{tabular}{@{}c@{\hspace{0.5cm}}c@{}}
+\fbox{\parbox{5.8cm}{\centering\textbf{Consulta individual}\\Nombre o código del municipio\\Salida descriptiva en consola}}&
+\fbox{\parbox{5.8cm}{\centering\textbf{Asignación MILP}\\Probabilidad, vulnerabilidad y distancia\\Flota y cuota de resguardos}}\\[2pt]
+&$\downarrow$\\[2pt]
+&\fbox{\parbox{5.8cm}{\centering\textbf{Plan de despacho}\\Municipios seleccionados\\Exportación a CSV}}
+\end{tabular}
+\end{tabular}
+\caption{Flujo lógico de los componentes implementados. No representa un despliegue web.}
+\label{fig:flujo_sistema}
+\end{figure}
+
+El modelo predictivo estima una clase derivada de la brecha relativa de consultas; no predice un número de pacientes ni realiza un diagnóstico clínico. El componente MILP selecciona destinos desde una base: no calcula el orden de visitas, recorridos por carretera ni itinerarios entre municipios. Las métricas y gráficas de evaluación se presentan en la Tabla~\ref{tab:metricas} y las Figuras~\ref{fig:curva_roc} a~\ref{fig:importancia}, sin duplicarlas en este apartado.
+
+\subsubsection{Diseño de la Partición de Datos}
+La división se realizó sobre los códigos únicos municipales (\texttt{cod\_mpio}) para que un municipio no aparezca simultáneamente en entrenamiento y prueba, aunque tenga registros de varios años:
+\begin{itemize}
+    \item \textbf{Entrenamiento (70\%):} 785 municipios; 3.925 registros, de los cuales 3.770 son válidos tras excluir \textit{hubs}.
+    \item \textbf{Validación (15\%):} 168 municipios; 840 registros, de los cuales 807 son válidos.
+    \item \textbf{Prueba (15\%):} 169 municipios; 845 registros, de los cuales 817 son válidos.
+\end{itemize}
+Esta separación evalúa la generalización a municipios no observados, no a años futuros. El conjunto de validación quedó reservado y no se utilizó para calibrar el umbral. La validación cruzada interna y la imputación presentan limitaciones que se detallan en la etapa de pruebas.
+
+\subsubsection{Diseño del Modelo de Asignación}
+El modelo prescriptivo selecciona destinos mediante Programación Lineal Entera Mixta (MILP):
+\begin{equation}
+\begin{aligned}
+\max_{x}\quad & \sum_{i=1}^{N}\Big[P_i\cdot\ln(V_i+1)-\lambda\cdot d_i\Big]\,x_i \\[5pt]
+\text{s.a.}\quad & \sum_{i=1}^{N}x_i \le K \qquad \text{(flota disponible)}\\
+& \sum_{i\in\mathcal{R}}x_i \ge M \qquad \text{(cuota de municipios con resguardos)}\\
+& d_i\,x_i \le D_{\max} \qquad \text{(distancia máxima por destino)}\\
+& x_i\in\{0,1\}\quad \forall i\in\{1,\dots,N\}.
+\end{aligned}
+\label{eq:milp}
+\end{equation}
+Aquí $P_i$ es la probabilidad estimada de prioridad alta; $V_i$, el indicador de población vulnerable; $d_i$, la distancia geodésica Haversine desde la base; $K$, la flota disponible; $M$, la cuota mínima de municipios con resguardos; y $D_{\max}$, el límite de distancia. El parámetro $\lambda$ penaliza el desplazamiento dentro de la función objetivo.
+
+\subsection{Fase de Implementación}
+La preparación de datos se automatizó mediante los scripts de extracción, transformación y carga de la Fase 1, junto con el proceso que construye el panel analítico. En la Fase 2 se implementaron el entrenamiento y la evaluación de clasificadores en \texttt{modelado.py}, y la formulación y resolución del modelo de asignación en \texttt{optimizacion\_milp.py}. Los modelos entrenados se guardaron en formato serializado para poder reutilizarlos sin repetir el entrenamiento.
+
+Para la consulta individual se desarrolló \texttt{probar\_ia.py}. El script busca el municipio por nombre o código, recupera sus variables, calcula la probabilidad estimada y presenta una recomendación descriptiva. Por tanto, el prototipo funcional documentado en esta entrega es una interfaz de consola; no se reporta una aplicación web ni un mapa interactivo porque esos componentes no están implementados en los artefactos revisados.
+
+La Tabla~\ref{tab:modulos} identifica las responsabilidades y salidas de cada módulo. Las rutas se expresan respecto de la carpeta \texttt{fase 1 api}.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Módulos implementados y artefactos generados.}
+\label{tab:modulos}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.8cm}
+                    >{\raggedright\arraybackslash}p{5cm}
+                    >{\raggedright\arraybackslash}p{5.4cm}@{}}
+\toprule
+\textbf{Módulo o ubicación} & \textbf{Responsabilidad} & \textbf{Salida disponible} \\
+\midrule
+\texttt{fase 1/src/etl\_00.py} a \texttt{etl\_06\_nbi.py} & Extraer y normalizar las fuentes territoriales. & Tablas en \texttt{data/processed/} y registros en \texttt{logs/}. \\
+\texttt{fase 1/src/}\newline\texttt{build\_tabla\_modelo.py} & Integrar los datos y construir el panel analítico. & \texttt{data/modelo/}\newline\texttt{municipio\_anio.parquet} y CSV. \\
+\texttt{fase 2/src/modelado.py} & Entrenar, comparar y evaluar clasificadores. & Modelos \texttt{.joblib}, métricas y gráficas en \texttt{fase 2/reportes/}. \\
+\texttt{fase 2/src/probar\_ia.py} & Consultar variables y obtener la probabilidad para un municipio. & Ficha descriptiva y recomendación en consola. \\
+\texttt{fase 2/src/}\newline\texttt{optimizacion\_milp.py} & Calcular distancias y resolver la asignación binaria de destinos. & \texttt{asignacion\_brigadas\_}\newline\texttt{optima.csv} en \texttt{fase 2/reportes/}. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Secuencia de ejecución de la demostración.} Desde la carpeta \texttt{fase 1 api}, con las dependencias del proyecto instaladas, el panel Parquet y el modelo \texttt{modelo\_\allowbreak gradient\_\allowbreak boosting.joblib} disponibles, se puede consultar un municipio mediante:
+
+\begin{quote}
+\small
+\verb|python "fase 2/src/probar_ia.py" "Pueblo Bello"|
+\end{quote}
+
+La salida presenta identificación municipal, coordenadas, población, ruralidad, NBI rural, resguardos, sedes de salud y probabilidad de prioridad. La consulta utiliza preferentemente registros de 2021 y un umbral de 0,5 para la recomendación; este umbral no debe confundirse con una regla obligatoria de asignación del MILP.
+
+Para reproducir la asignación con los parámetros predeterminados del piloto se utiliza:
+
+\begin{quote}
+\small
+\verb|python "fase 2/src/optimizacion_milp.py"|
+\end{quote}
+
+Este segundo comando genera nuevamente el reporte CSV de asignación y actualiza el registro de ejecución. Los comandos se incluyen como guía de reproducción; no constituyen evidencia de nuevas pruebas realizadas para esta ampliación documental.
+
+\subsubsection{Entrenamiento y Ajuste de Hiperparámetros}
+La Regresión Logística se implementó como línea base lineal con ponderación de clases balanceada y sin búsqueda de hiperparámetros. Random Forest y HistGradientBoosting se ajustaron mediante \textit{GridSearchCV}, con tres pliegues y criterio F1, evaluando respectivamente 12 y 24 combinaciones. La Tabla~\ref{tab:tuning} conserva la configuración experimental.
+
+\begin{table}[H]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\caption{Espacio de búsqueda y mejores hiperparámetros seleccionados (GridSearchCV, 3 pliegues, criterio F1).}
+\caption{Espacio de búsqueda y mejores hiperparámetros seleccionados.}
 \label{tab:tuning}
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.5cm}
                     >{\raggedright\arraybackslash}p{6.5cm}
@@ -235,7 +353,7 @@ El proceso experimental se documenta en la Tabla~\ref{tab:tuning}. La Regresión
 \textbf{Modelo} & \textbf{Malla evaluada} & \textbf{Mejor configuración} \\
 \midrule
 Random Forest &
-\texttt{n\_estimators} $\in\{100,200\}$; \texttt{max\_depth} $\in\{6,10,\text{sin límite}\}$; \texttt{min\_samples\_split} $\in\{2,5\}$; \texttt{class\_weight} $=$ \textit{balanced} &
+\texttt{n\_estimators} $\in\{100,200\}$; \texttt{max\_depth} $\in\{6,10,\text{sin límite}\}$; \texttt{min\_samples\_split} $\in\{2,5\}$; pesos balanceados &
 200 árboles; profundidad 6; \texttt{min\_samples\_split} $=2$; pesos balanceados \\
 \midrule
 HistGradientBoosting &
@@ -245,83 +363,131 @@ Tasa $0.15$; 100 iteraciones; 15 hojas; 20 muestras mínimas por hoja \\
 \end{tabular}
 \end{table}
 
-\subsection{Curvas ROC y Matrices de Confusión}
-En la Figura~\ref{fig:curva_roc} se presenta la comparación de las Curvas Características Operativas del Receptor (ROC). El clasificador HistGradientBoosting mantiene una clara dominancia estocástica a lo largo de todo el espectro de corte.
+\subsection{Fase de Pruebas}
+Esta etapa recoge la evaluación cuantitativa ya realizada en la Fase II. Se distingue de las pruebas funcionales del aplicativo, para las cuales todavía no se dispone de un registro completo de casos ejecutados y resultados.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.70\textwidth]{../reportes/curva_roc_comparacion.png}
-    \caption{Curvas ROC comparativas en el conjunto de prueba ciego (Test Set).}
-    \label{fig:curva_roc}
-\end{figure}
+\subsubsection{Evaluación Comparativa de Modelos}
+La comparación de los cuatro clasificadores utilizó 817 registros de municipios excluidos del entrenamiento. La Tabla~\ref{tab:metricas} reúne las métricas obtenidas para cada modelo en ese conjunto de prueba.
 
-La Figura~\ref{fig:matrices} presenta las matrices de confusión de los tres modelos funcionales sobre las 817 observaciones de prueba. El HistGradientBoosting clasifica correctamente 488 registros no prioritarios y 149 prioritarios, con 52 falsos positivos y 128 falsos negativos. Su precisión (74.13\%) indica que tres de cada cuatro alertas son correctas, mientras que el recall (53.79\%) evidencia que cerca del 46\% de los registros realmente prioritarios no se detectan con el umbral de 0.5. El comportamiento es conservador en el uso de recursos y debe compensarse con revisión humana o con un umbral de decisión ajustable; el conjunto de validación queda disponible para calibrar dicho umbral en la siguiente iteración.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.90\textwidth, trim=0 0 0 8pt, clip]{../reportes/matriz_confusion_modelos.png}
-    \caption{Matrices de confusión comparativas sobre el conjunto de prueba ciego.}
-    \label{fig:matrices}
-\end{figure}
-
-\subsection{Importancia de Variables y Explicabilidad}
-La Figura~\ref{fig:importancia} presenta la importancia Gini del Random Forest optimizado. En el ranking individual dominan el perfil de diagnósticos y la vulnerabilidad étnica y social:
-\begin{enumerate}
-    \item \textbf{Capítulo CIE-10 O (embarazo, parto y puerperio):} 0.112. Es la variable con mayor reducción de impureza y refleja el peso de la demanda obstétrica en el perfil municipal.
-    \item \textbf{Población en resguardos:} 0.091. Concentración de población indígena sujeta a barreras geográficas de acceso.
-    \item \textbf{NBI servicios:} 0.085. Carencias en servicios básicos y saneamiento.
-    \item \textbf{NBI rural servicios:} 0.059. Las mismas carencias en centros poblados y rural disperso.
-    \item \textbf{Capítulo CIE-10 A (infecciosas y parasitarias):} 0.049. Carga de enfermedad infecciosa asociada a determinantes sociales.
-\end{enumerate}
-
-Agregadas por bloque, las once variables de NBI concentran aproximadamente el 42\% de la importancia total, frente al 26\% de los capítulos CIE-10, el 12\% de las variables étnicas, el 15\% de geografía y demografía y el 5\% de la capacidad instalada registrada en REPS. La lectura correcta es que el modelo combina demanda materna e infecciosa con vulnerabilidad social y étnica: la ruralidad dispersa (\texttt{pct\_rural\_disperso}) ocupa el puesto 13 y las sedes por cada 10.000 habitantes el puesto 21, de modo que su efecto es conjunto y no individual. La importancia Gini mide reducción de impureza dentro del ensamble y \textbf{no implica causalidad}; el modelo empleado para el despacho es el HistGradientBoosting.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.74\textwidth]{../reportes/importancia_variables_rf.png}
-    \caption{Importancia de variables predictoras en el modelo de ensamble.}
-    \label{fig:importancia}
-\end{figure}
-
-\subsection{Componente Prescriptivo: Optimización MILP y Asignación Geodésica}
-Para traducir la predicción estadística en acción logística, se implementó un modelo de Programación Lineal Entera Mixta (MILP) resuelto mediante el solver \textbf{HiGHS}:
-
-\begin{equation}
-\begin{aligned}
-\max_{x}\quad & \sum_{i=1}^{N}\Big[P_i\cdot\ln(V_i+1)-\lambda\cdot d_i\Big]\,x_i \\[5pt]
-\text{s.a.}\quad & \sum_{i=1}^{N}x_i \le K \qquad \text{(flota móvil disponible)}\\
-& \sum_{i\in\mathcal{R}}x_i \ge M \qquad \text{(cuota de cobertura en resguardos)}\\
-& d_i\,x_i \le D_{\max} \qquad \text{(autonomía máxima de traslado)}\\
-& x_i\in\{0,1\}\quad \forall i\in\{1,\dots,N\}
-\end{aligned}
-\label{eq:milp}
-\end{equation}
-
-donde $P_i$ es la probabilidad de prioridad alta arrojada por el modelo, $V_i$ es la población vulnerable (rural dispersa más población en resguardos), $d_i$ es la distancia geodésica ortodrómica calculada mediante la fórmula de Haversine desde el hospital base, $K$ es el número de brigadas disponibles, $M$ la cuota mínima de municipios con resguardos, $D_{\max}$ la autonomía operacional y $\lambda = 0.005$ la tasa de penalización logística por kilómetro. Para el ejercicio piloto se adoptaron $K=4$, $M=2$ y $D_{\max}=350$ km.
-
-\subsubsection{Demostración Operativa en el Departamento del Cesar}
-Tomando como base central de despacho el \textbf{Hospital Rosario Pumarejo de López en Valledupar} ($10.4605^\circ\text{N}, -73.2594^\circ\text{W}$) y una dotación de $K=4$ unidades médicas móviles, el modelo resolvió la asignación óptima expuesta en la Tabla~\ref{tab:cesar}.
-
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
-\scriptsize
-\caption{Plan de despacho óptimo resuelto para el departamento del Cesar ($K=4$, $M=2$).}
-\label{tab:cesar}
-\begin{tabular}{@{}lccccc@{}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Evaluación comparativa en el conjunto de prueba municipal.}
+\label{tab:metricas}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{Municipio} & $P_i$ & \textbf{Pob. vuln.} & \textbf{Dist. base} & \textbf{NBI rural} & \textbf{Brigada} \\
+\textbf{Modelo Evaluado} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{ROC-AUC} & \textbf{PR-AUC} \\
 \midrule
-\textbf{Pueblo Bello} & 0.369 & 29.861 hab & 36.1 km  & 86.6\% & \textbf{Brigada Móvil \#1} \\
-\textbf{Becerril}     & 0.458 & 8.160 hab  & 84.1 km  & 67.2\% & \textbf{Brigada Móvil \#2} \\
-\textbf{Astrea}       & \textbf{0.909} & 10.298 hab & 132.7 km & 37.5\% & \textbf{Brigada Móvil \#3} \\
-\textbf{Chimichagua}  & \textbf{0.750} & 22.329 hab & 146.8 km & 30.0\% & \textbf{Brigada Móvil \#4} \\
+\textbf{HistGradientBoosting} & \textbf{0.7797} & \textbf{0.7413} & 0.5379 & \textbf{0.6234} & \textbf{0.7848} & \textbf{0.7414} \\
+Random Forest (Optimizado) & 0.7283 & 0.6211 & 0.5090 & 0.5595 & 0.7653 & 0.6803 \\
+Regresión Logística & 0.6573 & 0.4952 & \textbf{0.5596} & 0.5254 & 0.6920 & 0.5926 \\
+Dummy Baseline (Trivial) & 0.6610 & 0.0000 & 0.0000 & 0.0000 & 0.5000 & 0.3390 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-El modelo satisfizo con exactitud la cuota ética y constitucional cubriendo dos zonas con resguardos en la Sierra Nevada y la Serranía del Perijá (Pueblo Bello y Becerril), asignando las dos brigadas restantes a los municipios con mayor probabilidad predictiva de abandono hospitalario (Astrea y Chimichagua).
+Entre los clasificadores evaluados, HistGradientBoosting registró los valores más altos de F1 y ROC-AUC: 0,6234 y 0,7848, respectivamente. La precisión alcanzada fue de 74,13\%; es decir, aproximadamente tres de cada cuatro registros señalados como prioritarios coinciden con la etiqueta derivada de la brecha de consultas. Esta concordancia con la etiqueta no equivale a una confirmación del déficit asistencial mediante observación en terreno.
 
-El modelo entrenado se expone además mediante el script \texttt{probar\_ia.py}, una interfaz de consola que recupera el vector de las 27 variables de cualquier municipio, aplica el clasificador y reporta la probabilidad de prioridad junto con un diagnóstico descriptivo. Este componente constituye la demostración funcional del sistema y permite verificar el comportamiento del modelo sin replicar el entorno de entrenamiento.
+\subsubsection{Curvas ROC y Análisis de Errores}
+La Figura~\ref{fig:curva_roc} compara la capacidad discriminativa de los clasificadores mediante sus curvas ROC.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.70\textwidth]{../reportes/curva_roc_comparacion.png}
+    \caption{Curvas ROC comparativas en el conjunto de prueba.}
+    \label{fig:curva_roc}
+\end{figure}
+
+La Figura~\ref{fig:matrices} presenta las matrices de confusión. HistGradientBoosting obtuvo 488 verdaderos negativos, 149 verdaderos positivos, 52 falsos positivos y 128 falsos negativos. Su recall de 53,79\% indica que cerca del 46\% de los registros prioritarios según la etiqueta no se detectan con el umbral de 0,5; por ello, las recomendaciones requieren revisión humana.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth, trim=0 0 0 8pt, clip]{../reportes/matriz_confusion_modelos.png}
+    \caption{Matrices de confusión sobre las 817 observaciones de prueba.}
+    \label{fig:matrices}
+\end{figure}
+
+\subsubsection{Interpretación de Variables}
+La importancia Gini del Random Forest se utiliza como análisis complementario, no como explicación directa del HistGradientBoosting empleado para la asignación. Destacan el capítulo CIE-10 O (embarazo, parto y puerperio: 0,112), la población en resguardos (0,091), las carencias en servicios básicos (0,085), las carencias rurales en servicios (0,059) y el capítulo CIE-10 A (enfermedades infecciosas y parasitarias: 0,049).
+
+Por bloques, las variables NBI concentran aproximadamente el 42\% de la importancia, los capítulos CIE-10 el 26\%, las variables étnicas el 12\%, geografía y demografía el 15\% y REPS el 5\%. La ruralidad dispersa ocupa el puesto 13 y las sedes por cada 10.000 habitantes el 21. Estas importancias no establecen relaciones causales.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.74\textwidth]{../reportes/importancia_variables_rf.png}
+    \caption{Importancia de variables del Random Forest optimizado.}
+    \label{fig:importancia}
+\end{figure}
+
+\subsubsection{Limitaciones y Pruebas Funcionales Pendientes}
+La validación cruzada interna utiliza particiones no agrupadas por municipio y las medianas de imputación se calculan antes de separar los conjuntos. Estas prácticas limitan la independencia de la evaluación; la partición municipal de prueba no elimina la fuga introducida por la imputación global. Quedan pendientes su corrección y la calibración del umbral con el conjunto de validación.
+
+Para completar las pruebas funcionales se requiere ejecutar y registrar consultas válidas por nombre y código, búsquedas sin coincidencias, ausencia de archivos y escenarios de asignación no factibles. Cada caso deberá consignar entrada, resultado esperado, resultado observado y estado. No se presenta ninguno de estos casos como aprobado sin evidencia de ejecución.
+
+\subsection{Fase de Simulación}
+Para el piloto se eligió el departamento del Cesar y se fijó el punto de salida de las brigadas en Valledupar, en las coordenadas del Hospital Rosario Pumarejo de López. El escenario dispuso de cuatro brigadas, exigió atender al menos dos municipios con resguardos indígenas y estableció un límite de desplazamiento de 350 km. Al resolver esta configuración con HiGHS se seleccionaron Pueblo Bello, Becerril, Astrea y Chimichagua. La Tabla~\ref{tab:cesar} muestra la asignación y los indicadores correspondientes a cada destino.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Asignación del piloto en Cesar ($K=4$, $M=2$).}
+\label{tab:cesar}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Municipio} & $P_i$ & \textbf{Indicador pob. vuln.} & \textbf{Dist. base} & \textbf{NBI rural} & \textbf{Brigada} \\
+\midrule
+\textbf{Pueblo Bello} & 0.369 & 29.861 & 36.1 km & 86.6\% & \textbf{Brigada Móvil \#1} \\
+\textbf{Becerril} & 0.458 & 8.160 & 84.1 km & 67.2\% & \textbf{Brigada Móvil \#2} \\
+\textbf{Astrea} & \textbf{0.909} & 10.298 & 132.7 km & 37.5\% & \textbf{Brigada Móvil \#3} \\
+\textbf{Chimichagua} & \textbf{0.750} & 22.329 & 146.8 km & 30.0\% & \textbf{Brigada Móvil \#4} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La asignación resultante reservó dos brigadas para municipios con presencia de resguardos y asignó las otras dos a municipios con alta probabilidad estimada de déficit asistencial, considerando también población vulnerable y distancia. Esta simulación demuestra el flujo del componente prescriptivo con los datos disponibles; sus distancias son geodésicas calculadas mediante Haversine y no representan necesariamente tiempos ni distancias reales por carretera. La recomendación debe utilizarse como apoyo a la decisión y no como sustituto de la validación por parte de los equipos de salud.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Configuración del escenario de simulación existente.}
+\label{tab:parametros_simulacion}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{6cm}
+                    >{\raggedright\arraybackslash}p{9.4cm}@{}}
+\toprule
+\textbf{Parámetro} & \textbf{Valor del piloto} \\
+\midrule
+Territorio y año & Departamento del Cesar (código 20), registros de 2021. \\
+Base operativa & Valledupar; latitud $10.460472$, longitud $-73.259398$. \\
+Flota disponible ($K$) & Hasta 4 brigadas; una variable binaria por municipio. \\
+Cuota de cobertura ($M$) & Al menos 2 municipios con presencia de resguardos. \\
+Distancia máxima ($D_{\max}$) & 350 km geodésicos desde la base hasta cada destino. \\
+Penalización ($\lambda$) & 0,005 por kilómetro dentro de la función objetivo; no es una tarifa monetaria. \\
+Estimador y resolución & HistGradientBoosting y optimizador MILP HiGHS. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La Figura~\ref{fig:comparacion_simulacion} compara las probabilidades de los destinos seleccionados a partir del reporte existente. La longitud de cada barra representa la probabilidad estimada, no la distancia ni el número de brigadas.
+
+\begin{figure}[H]
+\centering
+\small
+\begin{tabular}{@{}lcl@{}}
+\textbf{Municipio} & \textbf{Probabilidad de prioridad alta} & \textbf{Valor} \\[5pt]
+Pueblo Bello & \makebox[10cm][l]{\rule{3.6945cm}{9pt}} & 36,94\% \\[8pt]
+Becerril & \makebox[10cm][l]{\rule{4.5756cm}{9pt}} & 45,76\% \\[8pt]
+Astrea & \makebox[10cm][l]{\rule{9.0921cm}{9pt}} & 90,92\% \\[8pt]
+Chimichagua & \makebox[10cm][l]{\rule{7.4961cm}{9pt}} & 74,96\% \\[5pt]
+& \makebox[10cm][l]{0\%\hfill 50\%\hfill 100\%} & \\
+\end{tabular}
+\caption{Probabilidades de los cuatro destinos seleccionados. Elaboración a partir de \texttt{asignacion\_brigadas\_optima.csv}; escala común de 0 a 100\%.}
+\label{fig:comparacion_simulacion}
+\end{figure}
+
+\textbf{Lectura de los resultados.} El reporte contiene cuatro asignaciones y dos municipios con resguardos. Las distancias de los destinos seleccionados se encuentran entre 36,06 y 146,76 km, por debajo del límite de 350 km. Pueblo Bello y Becerril fueron seleccionados aunque sus probabilidades están por debajo de 0,5: el optimizador utiliza probabilidades continuas junto con vulnerabilidad, distancia y cuota de cobertura, no únicamente la clasificación binaria.
+
+\textbf{Alcance y limitaciones de la evidencia.} El indicador de población vulnerable suma la población rural dispersa estimada y la población en resguardos; ambos grupos pueden solaparse, por lo que no debe interpretarse como un conteo de beneficiarios únicos. Los cuatro municipios del reporte pertenecen a la partición de entrenamiento: este piloto ilustra la asignación, pero no constituye una evaluación independiente de generalización, la cual se reporta por separado sobre el conjunto de prueba. No se simularon jornadas de atención, tiempos de viaje, presupuesto monetario ni resultados clínicos. Además, el código prevé relajar la cuota de resguardos si falla la primera resolución; en futuras ejecuciones se debe revisar el registro antes de afirmar que todas las restricciones originales se cumplieron.
 
 % ============================================================
 % REFERENCIAS
@@ -333,13 +499,12 @@ El modelo entrenado se expone además mediante el script \texttt{probar\_ia.py},
 \begin{thebibliography}{9}
 \setlength{\itemsep}{0pt}
 \setlength{\parsep}{0pt}
-    \bibitem{ref1} S. H. Tanim, D. L. White, B. Witrick, and L. Rennert, ``Optimizing mobile health clinic placement via geospatial modeling,'' \textit{Public Health in Practice}, vol. 9, p. 100482, 2026.
-    \bibitem{ref2} H. J. Callaghan, L. Potgieter, and N. Le Roux, ``Mobile clinics routing and scheduling in the Witzenberg region of South Africa,'' \textit{PLOS ONE}, vol. 20, no. 3, p. e0284591, 2025.
     \bibitem{ref3} A. Roy and B. Kar, ``A multicriteria decision analysis framework to measure equitable healthcare access during COVID-19,'' \textit{Journal of Transport \& Health}, vol. 26, p. 101416, 2022.
     \bibitem{ref4} DANE, ``Censo Nacional de Población y Vivienda (CNPV) 2018: Necesidades Básicas Insatisfechas (NBI) a nivel municipal,'' Departamento Administrativo Nacional de Estadística, Bogotá, 2019.
-    \bibitem{ref5} Ministerio de Salud y Protección Social, ``Registro Especial de Prestadores de Servicios de Salud (REPS) y Sistema RIPS,'' Portal de Datos Abiertos de Colombia, 2021.
     \bibitem{ref6} F. Pedregosa et al., ``Scikit-learn: Machine Learning in Python,'' \textit{Journal of Machine Learning Research}, vol. 12, pp. 2825--2830, 2011.
     \bibitem{ref7} Q. Huangfu and J. A. J. Hall, ``Parallelizing the dual revised simplex method,'' \textit{Mathematical Programming Computation}, vol. 10, no. 1, pp. 119--142, 2018.
+    \bibitem{ref8} L. M. Rabiou, B. Oumarou, D. Mor, M. Abdou, C. Ibrahim, J. L. Tamuzi, P. D. M. C. Katoto, C. S. Wiysonge, B.-P. M. Anya, and T. C. Manengu, ``Mobile outreach clinics for improving health care services accessibility in vulnerable populations of the Diffa Region in Niger: a descriptive study,'' \textit{International Journal for Equity in Health}, vol. 23, art. 235, 2024. doi: 10.1186/s12939-024-02322-0.
+    \bibitem{ref9} J. A. Mejía, M. A. Oviedo-Benalcázar, J. A. Ordoñez, and J. F. Valencia, ``Aprendizaje automático aplicado a la predicción de diabetes mellitus, utilizando información socioeconómica y ambiental de usuarios del sistema de salud,'' \textit{Revista Facultad Nacional de Salud Pública}, vol. 41, no. 2, art. e351168, 2023. doi: 10.17533/udea.rfnsp.e351168.
 \end{thebibliography}
 }
 \end{document}
