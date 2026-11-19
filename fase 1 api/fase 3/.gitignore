@@ -29,6 +29,8 @@ storage/**
 .DS_Store
 Thumbs.db
 
-# MGN: datos originales y derivados locales; restricciones de distribución en metadatos DANE
-data/geography/mgn_2025/originals/
-data/geography/mgn_2025/processed/departments.geojson
+# MGN: conservar los metadatos locales; los archivos necesarios para la aplicación se versionan.
+# Revisar las restricciones de distribución en los metadatos DANE antes de compartirlos.
+data/geography/mgn_2025/originals/*
+!data/geography/mgn_2025/originals/MGN2025_DPTO_POLITICO.zip
+!data/geography/mgn_2025/originals/MGN2025_MPIO_GRAFICO.zip
