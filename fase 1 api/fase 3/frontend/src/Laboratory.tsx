@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity, Check, Database, FlaskConical, Play, RefreshCw } from "lucide-react";
 
-type Version = {id:number; created:string; records:number; checksum:string};
+type Version = {id:number; created:string; records:number; checksum:string; operational_count:number};
+type Operational = {id:number; code:string; year:number; source:string; data_sha256:string; data:Record<string,string|number|null>};
+type TrainingChoice = {label:string; label_source:string};
 type Score = {accuracy:number; precision:number; recall:number; f1:number; roc_auc:number|null; pr_auc:number|null; rows:number; matrix:number[][]};
 type Experiment = {id:number; dataset_id:number; status:string; created:string; info:{selected?:string; warning?:string; error?:string; split?:Record<string,{records:number;municipalities:number}>; validation?:Record<string,Score>; test?:Score|null}};
 type Props = {request:(path:string, options?:RequestInit)=>Promise<any>; json:(body:unknown)=>RequestInit; onPublished:()=>void};
@@ -19,6 +21,9 @@ export default function Laboratory({request,json,onPublished}:Props) {
   const [error,setError]=useState("");
   const [message,setMessage]=useState("");
   const [busy,setBusy]=useState(false);
+  const [records,setRecords]=useState<Operational[]>([]);
+  const [features,setFeatures]=useState<string[]>([]);
+  const [choices,setChoices]=useState<Record<number,TrainingChoice>>({});
   const load=useCallback(async()=>{
     try {
       const [v,e,a]=await Promise.all([request("/dataset-versions"),request("/experiments"),request("/models/active")]);
@@ -27,6 +32,11 @@ export default function Laboratory({request,json,onPublished}:Props) {
     } catch(e) {setError((e as Error).message)}
   },[request]);
   useEffect(()=>{load();const timer=window.setInterval(load,3000);return()=>window.clearInterval(timer)},[load]);
+  async function loadRecords() {
+    try {const [r,s]=await Promise.all([request("/data/records"),request("/data/schema")]);setRecords(r);setFeatures(s.features);setChoices({});setError("")}
+    catch(e){setError((e as Error).message)}
+  }
+  useEffect(()=>{loadRecords()},[]);
   async function act(action:()=>Promise<any>, success:string) {
     setBusy(true);setError("");setMessage("");
     try {await action();await load();setMessage(success)} catch(e) {setError((e as Error).message)} finally {setBusy(false)}
@@ -37,9 +47,14 @@ export default function Laboratory({request,json,onPublished}:Props) {
     {error&&<div className="alert" role="alert">{error}</div>}{message&&<div className="success" role="status"><Check size={16}/>{message}</div>}
     <div className="info-box"><Activity size={18}/><p><strong>Importante:</strong> las etiquetas históricas se construyeron antes de separar municipios. Las métricas pueden contener contaminación; no representan una prueba ciega rigurosa. Los datos sin etiqueta o características suficientes no se usan para entrenar.</p></div>
     <div className="two-cols lab-actions">
-      <section className="panel"><div className="panel-title"><Database/><div><h2>1. Congelar dataset</h2><p>Crea una copia inmutable del histórico y los registros adicionales, sin cambiar el modelo activo.</p></div></div><button className="secondary full" disabled={busy} onClick={()=>act(()=>request("/dataset-versions",{method:"POST"}),"Versión creada.")}>Crear versión del dataset</button><div className="version-list">{versions.map(v=><div key={v.id}><span><strong>Versión #{v.id}</strong><small>{v.records.toLocaleString("es-CO")} registros · {new Date(v.created).toLocaleString("es-CO")}</small></span><code>{v.checksum.slice(0,10)}</code></div>)}{!versions.length&&<p className="footnote">Aún no existen versiones guardadas.</p>}</div></section>
+      <section className="panel"><div className="panel-title"><Database/><div><h2>1. Congelar dataset</h2><p>Incluye el histórico, los registros adicionales anteriores y los operativos seleccionados abajo. Crear la versión no cambia el modelo activo.</p></div></div><button className="secondary full" disabled={busy||Object.values(choices).some(c=>c.label===""||!c.label_source.trim())} onClick={()=>act(()=>request("/dataset-versions",json({operational_inputs:records.filter(r=>choices[r.id]).map(r=>({record_id:r.id,data_sha256:r.data_sha256,label:Number(choices[r.id].label),label_source:choices[r.id].label_source}))})),"Versión creada con la selección indicada.")}>Crear versión del dataset · {Object.keys(choices).length} operativos</button><div className="version-list">{versions.map(v=><div key={v.id}><span><strong>Versión #{v.id}</strong><small>{v.records.toLocaleString("es-CO")} registros · {v.operational_count} operativos seleccionados · {new Date(v.created).toLocaleString("es-CO")}</small></span><code>{v.checksum.slice(0,10)}</code></div>)}{!versions.length&&<p className="footnote">Aún no existen versiones guardadas.</p>}</div></section>
       <section className="panel"><div className="panel-title"><FlaskConical/><div><h2>2. Entrenar candidatos</h2><p>Separación 70/15/15 por municipio y comparación en validación.</p></div></div><label className="lab-label">Versión del dataset<select value={version} onChange={e=>setVersion(e.target.value)}><option value="">Selecciona una versión</option>{versions.map(v=><option key={v.id} value={v.id}>Versión #{v.id} · {v.records} registros</option>)}</select></label><button className="primary full" disabled={!version||running||busy} onClick={()=>act(()=>request("/experiments",json({dataset_id:Number(version)})),"Entrenamiento iniciado. La página se actualiza automáticamente.")}><Play size={16}/>{running?"Entrenamiento en curso…":"Entrenar modelo"}</button><p className="footnote">Se comparan un clasificador HistGradientBoosting y una referencia básica; los faltantes se imputan usando solo entrenamiento.</p></section>
     </div>
+    <section className="panel data-preview"><div className="panel-title"><div><h2>Seleccionar registros operativos para entrenar</h2><p>Opcional. Selecciona registros con los 27 predictores y proporciona su etiqueta y origen. No se comprueba la fuente externamente.</p></div></div>
+      <p className="footnote">El entrenamiento actual excluye municipios identificados como hub. Si la clasificación histórica indica hub o no es inequívoca, la versión no se creará. Se muestran los últimos 500 registros; actualizar la lista borra la selección actual.</p>
+      <button type="button" onClick={loadRecords}>Actualizar registros</button>
+      {records.length?<div className="table-wrap"><table><thead><tr><th>Incluir</th><th>Municipio y fuente</th><th>Predictores</th><th>Etiqueta de prioridad alta</th><th>Origen de etiqueta</th></tr></thead><tbody>{records.map(r=>{const complete=features.length===27&&features.every(f=>r.data[f]!=null);const choice=choices[r.id];return <tr key={r.id}><td><input type="checkbox" aria-label={`Incluir ${r.data.nom_mpio} ${r.year}`} checked={!!choice} disabled={!complete} onChange={e=>{setChoices(current=>{const next={...current};if(e.target.checked)next[r.id]={label:"",label_source:""};else delete next[r.id];return next})}}/></td><td><strong>{r.data.nom_mpio}</strong><small>{r.code} · {r.year} · {r.source}</small></td><td>{features.filter(f=>r.data[f]!=null).length} / 27</td><td>{choice&&<select aria-label={`Etiqueta de ${r.code} ${r.year}`} value={choice.label} onChange={e=>setChoices({...choices,[r.id]:{...choice,label:e.target.value}})}><option value="">Seleccionar</option><option value="0">No · 0</option><option value="1">Sí · 1</option></select>}</td><td>{choice&&<input aria-label={`Origen de etiqueta de ${r.code} ${r.year}`} maxLength={500} value={choice.label_source} onChange={e=>setChoices({...choices,[r.id]:{...choice,label_source:e.target.value}})} placeholder="Ej. evaluación territorial"/>}</td></tr>})}</tbody></table></div>:<p className="empty">No hay registros operativos para seleccionar.</p>}
+    </section>
     <div className="lab-heading"><h2>Experimentos</h2><p>El conjunto de prueba se evalúa después de seleccionar el candidato en validación.</p></div>
     {!experiments.length&&<div className="panel"><p className="subtle">Crea una versión del dataset para comenzar tu primer experimento.</p></div>}
     {experiments.map(exp=><section className="panel experiment" key={exp.id}>

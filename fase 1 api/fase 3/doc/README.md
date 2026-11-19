@@ -2,6 +2,8 @@
 
 Esta documentación describe el alcance aprobado y las decisiones iniciales del aplicativo. No es el informe académico final ni certifica funcionalidades implementadas.
 
+**Actualización de alcance:** el [plan de jornadas y datos](09_PLAN_JORNADAS_DATOS.md) recoge acuerdos posteriores y prevalece sobre las propuestas anteriores cuando difieran. Las funcionalidades nuevas siguen pendientes hasta implementarse y probarse.
+
 | Documento | Contenido |
 |---|---|
 | [01 — Alcance y requisitos](01_ALCANCE_REQUISITOS.md) | Ocho requisitos, permisos y criterios de aceptación |
@@ -12,6 +14,7 @@ Esta documentación describe el alcance aprobado y las decisiones iniciales del 
 | [06 — Interfaz y mapa](06_INTERFAZ_MAPA.md) | Pantallas, interacción territorial y límites del mapa |
 | [07 — Plan de implementación](07_PLAN_IMPLEMENTACION.md) | Bloques de entrega, dependencias y riesgos |
 | [08 — Pruebas y ejecución](08_PRUEBAS_EJECUCION.md) | Verificación funcional, seguridad y reproducibilidad |
+| [09 — Jornadas, territorio y datos de IA](09_PLAN_JORNADAS_DATOS.md) | Catálogo nacional, bases, jornadas multibase, distancias, plantillas y evaluación |
 
 ## Reglas de mantenimiento
 

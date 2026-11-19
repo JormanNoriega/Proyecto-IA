@@ -1,0 +1,25 @@
+{
+  "created": "2026-11-19T07:15:01.213030+00:00",
+  "source": "DANE MGN 2025",
+  "note": "Referencia geoestadística; no constituye deslinde jurídico.",
+  "layers": {
+    "department": {
+      "sha256": "0b793191d2451a1bc02be42425d94f1df556bcf5f22220511a1d87af7f4e7000",
+      "count": 33,
+      "missing": [],
+      "extra": [],
+      "duplicates": [],
+      "invalid": [],
+      "nonpolygon": []
+    },
+    "municipality": {
+      "sha256": "a3c01393059be8f2947de5e0a828faa4c7a43119819a667a8124854340bc141f",
+      "count": 1122,
+      "missing": [],
+      "extra": [],
+      "duplicates": [],
+      "invalid": [],
+      "nonpolygon": []
+    }
+  }
+}

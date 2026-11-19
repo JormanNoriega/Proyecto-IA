@@ -28,3 +28,7 @@ storage/**
 *.log
 .DS_Store
 Thumbs.db
+
+# MGN: datos originales y derivados locales; restricciones de distribución en metadatos DANE
+data/geography/mgn_2025/originals/
+data/geography/mgn_2025/processed/departments.geojson
