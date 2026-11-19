@@ -85,6 +85,7 @@ def initialize():
         CREATE TABLE IF NOT EXISTS plans (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, created TEXT NOT NULL, data TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS dataset_versions (id INTEGER PRIMARY KEY, created TEXT NOT NULL, author TEXT NOT NULL, records INTEGER NOT NULL, checksum TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS dataset_operational_inputs (dataset_id INTEGER NOT NULL, record_id INTEGER NOT NULL, record_sha256 TEXT NOT NULL, label INTEGER NOT NULL, label_source TEXT NOT NULL, record_data TEXT NOT NULL, PRIMARY KEY(dataset_id,record_id));
+        CREATE TABLE IF NOT EXISTS dataset_label_cohorts (dataset_id INTEGER NOT NULL, year INTEGER NOT NULL, snapshot TEXT NOT NULL, PRIMARY KEY(dataset_id,year));
         CREATE TABLE IF NOT EXISTS experiments (id INTEGER PRIMARY KEY, dataset_id INTEGER NOT NULL, created TEXT NOT NULL, author TEXT NOT NULL, status TEXT NOT NULL, info TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS territories (code TEXT PRIMARY KEY, department_code TEXT NOT NULL, department TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL);
@@ -553,8 +554,40 @@ def list_versions(user=Depends(admin)):
 class TrainingInput(BaseModel):
     record_id: int = Field(gt=0)
     data_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    label: Literal[0, 1]
-    label_source: str = Field(min_length=1, max_length=500)
+
+
+def annual_labels(rows, years):
+    """Adaptación anual: mínimo 30 observaciones en cada una de las cinco bandas."""
+    results, snapshots = {}, {}
+    for year in years:
+        cohort = []
+        for row in rows:
+            if row["year"] != year:
+                continue
+            data = json.loads(row["data"])
+            c, p, b = data.get("consultas"), data.get("poblacion"), data.get("banda_pob")
+            if (isinstance(c, (int, float)) and not isinstance(c, bool) and math.isfinite(c) and c >= 0 and c == int(c)
+                and isinstance(p, (int, float)) and not isinstance(p, bool) and math.isfinite(p) and p > 0
+                and isinstance(b, (int, float)) and not isinstance(b, bool) and b in range(5)):
+                cohort.append({"id": row["id"], "code": row["code"], "data_sha256": hashlib.sha256(row["data"].encode("utf-8")).hexdigest(), "consultas": c, "poblacion": p, "banda_pob": int(b)})
+        frame = pd.DataFrame(cohort)
+        counts = frame.groupby("banda_pob").size().to_dict() if not frame.empty else {}
+        if any(counts.get(b, 0) < 30 for b in range(5)):
+            raise HTTPException(422, f"Año {year}: se necesitan al menos 30 registros con consultas y población en cada banda (0–4). Disponibles: {counts}.")
+        rate = frame.consultas / frame.poblacion
+        capped = rate.clip(upper=rate.quantile(.99))
+        benchmark = capped.groupby(frame.banda_pob).transform("median")
+        if (benchmark <= 0).any():
+            raise HTTPException(422, f"Año {year}: una banda tiene mediana de consultas cero; no es posible calcular la brecha.")
+        gap = (1 - capped / benchmark).clip(lower=0).round(4)
+        hub = rate / benchmark >= 3
+        threshold = gap[~hub].quantile(2 / 3)
+        if pd.isna(threshold):
+            raise HTTPException(422, f"Año {year}: no hay suficientes registros no hub.")
+        for i, record in frame.iterrows():
+            results[int(record.id)] = None if hub.iloc[i] else int(gap.iloc[i] >= threshold)
+        snapshots[year] = json.dumps({"method": "anual_v1", "minimum_per_band": 30, "threshold": float(threshold), "records": cohort}, ensure_ascii=False, sort_keys=True)
+    return results, snapshots
 
 
 class DatasetCreate(BaseModel):
@@ -566,6 +599,9 @@ def create_version(body: DatasetCreate = DatasetCreate(), user=Depends(admin)):
     with db() as con:
         con.execute("BEGIN IMMEDIATE")
         rows = con.execute("SELECT data FROM records ORDER BY id").fetchall()
+        operational = con.execute("SELECT id,code,year,data FROM operational_records ORDER BY id").fetchall()
+        years = {r["year"] for r in operational if r["id"] in {i.record_id for i in body.operational_inputs}}
+        labels, snapshots = annual_labels(operational, years)
         selected = []
         seen = set()
         for item in body.operational_inputs:
@@ -575,9 +611,6 @@ def create_version(body: DatasetCreate = DatasetCreate(), user=Depends(admin)):
             row = con.execute("SELECT * FROM operational_records WHERE id=?", (item.record_id,)).fetchone()
             if not row or hashlib.sha256(row["data"].encode("utf-8")).hexdigest() != item.data_sha256:
                 raise HTTPException(409, "Un registro seleccionado cambió o ya no existe; actualice la lista.")
-            label_source = item.label_source.strip()
-            if not label_source:
-                raise HTTPException(422, "Indique el origen de cada etiqueta.")
             data = json.loads(row["data"])
             if any(not isinstance(data.get(f), (int, float)) or isinstance(data.get(f), bool) or not math.isfinite(data[f]) for f in FEATURES):
                 raise HTTPException(422, f"El registro {row['code']} · {row['year']} necesita los 27 predictores.")
@@ -586,7 +619,13 @@ def create_version(body: DatasetCreate = DatasetCreate(), user=Depends(admin)):
             hub = historical[historical["cod_mpio"].astype(str) == row["code"]]["es_hub"].dropna()
             if hub.empty or not (pd.to_numeric(hub, errors="coerce") == 0).all():
                 raise HTTPException(422, f"El municipio {row['code']} es hub o no tiene clasificación histórica inequívoca; el entrenamiento actual lo excluye.")
-            selected.append((row, item, label_source, {**data, "prioridad_alta": item.label, "es_hub": 0}))
+            if item.record_id not in labels:
+                raise HTTPException(422, f"El registro {row['code']} · {row['year']} necesita consultas, población y banda válidas para calcular la etiqueta.")
+            label = labels[item.record_id]
+            if label is None:
+                raise HTTPException(422, f"El registro {row['code']} · {row['year']} es hub según la cohorte anual y no puede usarse para entrenar.")
+            label_source = "Cálculo automático anual_v1; cohorte congelada en la versión"
+            selected.append((row, item, label_source, {**data, "prioridad_alta": label, "es_hub": 0}))
     added = pd.DataFrame([json.loads(row["data"]) for row in rows])
     if selected:
         added = pd.concat([added, pd.DataFrame([entry[3] for entry in selected])], ignore_index=True)
@@ -607,14 +646,20 @@ def create_version(body: DatasetCreate = DatasetCreate(), user=Depends(admin)):
     checksum = hashlib.sha256(contents).hexdigest()
     with db() as con:
         con.execute("BEGIN IMMEDIATE")
+        current_operational = con.execute("SELECT id,code,year,data FROM operational_records ORDER BY id").fetchall()
+        _, current_snapshots = annual_labels(current_operational, years)
+        if current_snapshots != snapshots:
+            raise HTTPException(409, "La cohorte anual cambió durante el cálculo; vuelva a intentarlo.")
         for row, item, _, _ in selected:
             fresh = con.execute("SELECT data FROM operational_records WHERE id=?", (item.record_id,)).fetchone()
             if not fresh or hashlib.sha256(fresh["data"].encode("utf-8")).hexdigest() != item.data_sha256:
                 raise HTTPException(409, "Un registro seleccionado cambió; actualice la lista.")
         cur = con.execute("INSERT INTO dataset_versions(created,author,records,checksum) VALUES(?,?,?,?)", (datetime.now(timezone.utc).isoformat(), user["username"], len(combined), checksum))
         version_id = cur.lastrowid
-        for row, item, label_source, _ in selected:
-            con.execute("INSERT INTO dataset_operational_inputs VALUES(?,?,?,?,?,?)", (version_id, item.record_id, item.data_sha256, item.label, label_source, row["data"]))
+        for row, item, label_source, labelled in selected:
+            con.execute("INSERT INTO dataset_operational_inputs VALUES(?,?,?,?,?,?)", (version_id, item.record_id, item.data_sha256, labelled["prioridad_alta"], label_source, row["data"]))
+        for year, snapshot in snapshots.items():
+            con.execute("INSERT INTO dataset_label_cohorts VALUES(?,?,?)", (version_id, year, snapshot))
         path = version_path(version_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(contents)

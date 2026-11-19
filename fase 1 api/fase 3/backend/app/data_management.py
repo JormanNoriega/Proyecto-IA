@@ -17,7 +17,7 @@ from .data_dictionary import PREDICTORS, META as META_DICTIONARY
 
 MAX_BYTES = 2_000_000
 MAX_ROWS = 2000
-META = ["cod_mpio", "a_o", "fuente", "fecha_referencia"]
+META = ["cod_mpio", "a_o", "fuente", "fecha_referencia", "consultas"]
 COUNTS = {"poblacion", "n_sedes", "n_sedes_ese", "n_resguardos", "pob_resguardos", "n_comunidades"}
 
 
@@ -26,7 +26,7 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
     dictionary_rows = [
         {"campo": name, "descripcion": definition[0], "unidad": definition[1],
          "origen_historico": definition[2],
-         "estado": "obligatorio" if name in META else "opcional; verificar equivalencia y fecha"}
+         "estado": "opcional; requerido para etiquetar" if name == "consultas" else "obligatorio" if name in META else "opcional; verificar equivalencia y fecha"}
         for name in columns for definition in [(META_DICTIONARY | PREDICTORS)[name]]
     ]
 
@@ -74,6 +74,19 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
             if key in historical:
                 errors.append("Ya existe un registro histórico para este municipio y año.")
             values = {}
+            raw_consultas = raw.get("consultas")
+            consultas = None
+            if raw_consultas is not None and str(raw_consultas).strip():
+                try:
+                    consultas = float(raw_consultas)
+                    if not math.isfinite(consultas) or consultas < 0 or not consultas.is_integer():
+                        raise ValueError()
+                    consultas = int(consultas)
+                except (ValueError, TypeError, OverflowError):
+                    errors.append("consultas: debe ser un número entero no negativo.")
+                    consultas = None
+            if consultas is None:
+                warnings.append("Sin consultas no se puede calcular la etiqueta de entrenamiento.")
             for name in features:
                 value = raw.get(name)
                 if value is None or str(value).strip() == "":
@@ -117,7 +130,7 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
                            "errores": errors, "advertencias": warnings,
                            "elegibilidad": "incompleto" if missing else "requiere_revision",
                            "data": {"cod_mpio": code, "cod_dpto": code[:2], "nom_mpio": name,
-                                    "a_o": year, "fuente": source, "fecha_referencia": ref, **values}})
+                                     "a_o": year, "fuente": source, "fecha_referencia": ref, "consultas": consultas, **values}})
         return result
 
     @app.get("/api/v1/data/template/{format}")
@@ -200,7 +213,7 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
             if filename.endswith(".csv"):
                 reader = csv.DictReader(io.StringIO(content.decode("utf-8-sig"), newline=""))
                 headers = reader.fieldnames or []
-                if len(set(headers)) != len(headers) or not set(META).issubset(headers):
+                if len(set(headers)) != len(headers) or not set(META[:4]).issubset(headers):
                     raise ValueError("Encabezados duplicados o faltan columnas obligatorias.")
                 rows = []
                 for row in reader:
@@ -222,7 +235,7 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
                     raise ValueError("La hoja excede el límite de filas o columnas.")
                 lines = ws.iter_rows()
                 headers = [str(c.value or "").strip() for c in next(lines)]
-                if len(set(headers)) != len(headers) or not set(META).issubset(headers):
+                if len(set(headers)) != len(headers) or not set(META[:4]).issubset(headers):
                     raise ValueError("Encabezados duplicados o faltan columnas obligatorias.")
                 rows = []
                 for cells in lines:

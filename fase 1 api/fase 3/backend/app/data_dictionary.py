@@ -35,4 +35,5 @@ META = {
     "a_o": ("Año del registro", "año", "Informado por quien registra"),
     "fuente": ("Origen declarado del conjunto", "texto", "Informado por quien registra"),
     "fecha_referencia": ("Fecha declarada del conjunto", "AAAA-MM-DD", "Informado por quien registra"),
+    "consultas": ("Consultas ambulatorias del municipio y año", "consultas", "Fuente declarada; requerido para calcular la etiqueta"),
 }

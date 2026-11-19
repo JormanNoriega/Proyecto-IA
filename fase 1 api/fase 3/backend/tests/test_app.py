@@ -99,35 +99,59 @@ def test_operational_priorities_and_journey_snapshot(client):
     assert client.get("/api/v1/plans").json()[0]["candidates"][0]["poblacion"] == 1000
 
 
-def test_version_explicitly_freezes_labelled_operational_data(client):
+def test_automatic_label_requires_complete_annual_cohort(client):
     from app import main
     login(client, "admin")
-    historical = main.source_data()
-    groups = historical.groupby("cod_mpio")["es_hub"]
-    code = str(next(code for code, values in groups if values.notna().any() and (values.dropna() == 0).all()))
-    row = {"cod_mpio": code, "a_o": "2026", "fuente": "Prueba", "fecha_referencia": "2026-01-01",
-           **{field: 0 for field in main.FEATURES}, "poblacion": 1000}
+    row = {"cod_mpio": "20001", "a_o": "2026", "fuente": "Prueba", "fecha_referencia": "2026-01-01",
+           **{field: 0 for field in main.FEATURES}, "poblacion": 1000, "consultas": 500}
     preview = client.post("/api/v1/data/preview-record", json=row).json()
     assert not preview["rows"][0]["errores"]
     assert client.post("/api/v1/data/confirm/" + preview["token"]).status_code == 200
     record = client.get("/api/v1/data/records").json()[0]
-    entry = {"record_id": record["id"], "data_sha256": record["data_sha256"], "label": 1, "label_source": "Revisión humana"}
-    bad = {**entry, "data_sha256": "0" * 64}
-    assert client.post("/api/v1/dataset-versions", json={"operational_inputs": [bad]}).status_code == 409
+    entry = {"record_id": record["id"], "data_sha256": record["data_sha256"]}
     result = client.post("/api/v1/dataset-versions", json={"operational_inputs": [entry]})
+    assert result.status_code == 422
+    assert "30 registros" in result.json()["detail"]
+
+
+def test_annual_labels_and_zero_median():
+    import json
+    from fastapi import HTTPException
+    from app.main import annual_labels
+    rows = [{"id": band * 30 + i + 1, "code": str(band * 30 + i), "year": 2026,
+             "data": json.dumps({"consultas": i + 1, "poblacion": 1000, "banda_pob": band})}
+            for band in range(5) for i in range(30)]
+    labels, snapshots = annual_labels(rows, {2026})
+    assert labels[1] == 1 and labels[30] == 0
+    assert len(json.loads(snapshots[2026])["records"]) == 150
+    for row in rows:
+        data = json.loads(row["data"])
+        data["consultas"] = 0
+        row["data"] = json.dumps(data)
+    with pytest.raises(HTTPException):
+        annual_labels(rows, {2026})
+
+
+def test_sample_import_and_automatic_version(client):
+    from app import main
+    login(client, "admin")
+    path = main.ROOT.parent.parent / "data" / "municipios_prueba.csv"
+    xlsx = path.with_suffix(".xlsx")
+    excel_preview = client.post("/api/v1/data/preview", files={"file": (xlsx.name, xlsx.read_bytes(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")})
+    assert excel_preview.status_code == 200, excel_preview.text
+    assert not [r for r in excel_preview.json()["rows"] if r["errores"]]
+    preview = client.post("/api/v1/data/preview", files={"file": (path.name, path.read_bytes(), "text/csv")})
+    assert preview.status_code == 200, preview.text
+    invalid = [r for r in preview.json()["rows"] if r["errores"]]
+    assert not invalid, invalid[:3]
+    assert client.post("/api/v1/data/confirm/" + preview.json()["token"]).json()["guardados"] == 150
+    records = client.get("/api/v1/data/records").json()
+    selected = [{"record_id": r["id"], "data_sha256": r["data_sha256"]} for r in records]
+    result = client.post("/api/v1/dataset-versions", json={"operational_inputs": selected})
     assert result.status_code == 200, result.text
-    version = result.json()
-    assert version["operational_count"] == 1
-    frozen = client.get(f"/api/v1/dataset-versions/{version['id']}/operational-inputs").json()
-    assert frozen[0]["label"] == 1 and frozen[0]["label_source"] == "Revisión humana"
-    assert frozen[0]["record_data"]["poblacion"] == 1000
-    data = main.load_version(version["id"])
-    included = data[(data.cod_mpio == code) & (data.a_o == 2026)]
-    assert len(included) == 1 and included.iloc[0]["prioridad_alta"] == 1 and included.iloc[0]["es_hub"] == 0
-    correction = client.post(f"/api/v1/data/records/{record['id']}/preview", json={**row, "poblacion": 2000}).json()
-    assert client.post("/api/v1/data/corrections/" + correction["token"] + "/confirm").status_code == 200
-    assert client.get(f"/api/v1/dataset-versions/{version['id']}/operational-inputs").json()[0]["record_data"]["poblacion"] == 1000
-    assert client.post("/api/v1/dataset-versions", json={"operational_inputs": [entry]}).status_code == 409
+    assert result.json()["operational_count"] == 150
+    with main.db() as con:
+        assert con.execute("SELECT COUNT(*) FROM dataset_label_cohorts").fetchone()[0] == 1
 
 
 def test_data_template_rejects_formulas(client):
@@ -166,7 +190,7 @@ def test_operational_correction_keeps_history_and_rejects_stale_preview(client):
 def test_exploratory_inference_requires_complete_inputs_and_keeps_snapshot(client):
     from app import main
     login(client, "admin")
-    assert len(client.get("/api/v1/data/schema").json()["dictionary"]) == 31
+    assert len(client.get("/api/v1/data/schema").json()["dictionary"]) == 32
     assert client.get("/api/v1/data/template/diccionario.csv").status_code == 200
     row = {"cod_mpio": "20001", "a_o": "2026", "fuente": "Prueba", "fecha_referencia": "2025-01-01"}
     preview = client.post("/api/v1/data/preview-record", json=row).json()
