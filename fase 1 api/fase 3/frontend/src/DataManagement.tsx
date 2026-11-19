@@ -4,7 +4,7 @@ type Row = {fila:number; cod_mpio:string; municipio:string; a_o:number|null; err
 type Preview = {token:string; rows:Row[]};
 type Field = {campo:string; descripcion:string; unidad:string; origen_historico:string; estado:string};
 type Schema = {columns:string[]; features:string[]; instructions:string; dictionary:Field[]};
-type RecordItem = {id:number; code:string; year:number; source:string; reference_date:string; created:string; created_by:string; data:Record<string, string|number|null>};
+type RecordItem = {id:number; code:string; year:number; source:string; reference_date:string; created:string; created_by:string; batch:string; data:Record<string, string|number|null>};
 type Revision = {data:Record<string,string|number|null>; changed_at:string; changed_by:string; action:string};
 type Exploratory = {id:number; created:string; created_by:string; model:string; model_sha256:string; probability:number; warning:string; data:Record<string,string|number|null>};
 type Props = {request:(path:string, options?:RequestInit)=>Promise<any>; json:(body:unknown)=>RequestInit};
@@ -23,6 +23,12 @@ export default function DataManagement({request,json}:Props) {
   const [notice,setNotice]=useState("");
   const [busy,setBusy]=useState(false);
   async function loadRecords(){setRecords(await request("/data/records"))}
+  async function deleteBatch(record:RecordItem){
+    if(!window.confirm(`¿Eliminar todos los registros del lote de ${record.source}? Se quitarán de las vistas operativas; las versiones y planes guardados no cambian.`))return;
+    setBusy(true);setError("");setNotice("");
+    try{const result=await request(`/data/batches/${encodeURIComponent(record.batch)}`,{method:"DELETE"});setNotice(`${result.eliminados} registros retirados del lote.`);await loadRecords()}
+    catch(e){setError((e as Error).message)}finally{setBusy(false)}
+  }
   useEffect(()=>{request("/data/schema").then(setSchema).catch((e:Error)=>setError(e.message));loadRecords().catch((e:Error)=>setError(e.message))},[]);
   async function validateFile(){
     if(!file)return;
@@ -89,6 +95,7 @@ export default function DataManagement({request,json}:Props) {
       <button className="primary" type="button" onClick={()=>showHistory(r)}>Historial</button>
       <button className="primary" type="button" disabled={busy||!schema||schema.features.some(f=>r.data[f]==null)} onClick={()=>explore(r)}>Probar IA</button>
       <button className="primary" type="button" onClick={()=>showPredictions(r)}>Ver pruebas</button>
+      <button className="secondary" type="button" disabled={busy} onClick={()=>deleteBatch(r)}>Eliminar lote</button>
     </div></td></tr>)}</tbody></table></div>:<p className="empty">Aún no hay registros operativos en este módulo.</p>}</section>
     {history&&<section className="panel data-preview"><h2>Historial: {history.title}</h2><p>Versiones completas en orden de registro.</p>{history.items.map((item,index)=><details key={index}><summary>{item.action} · {item.changed_by} · {item.changed_at}</summary><dl>{Object.entries(item.data).map(([key,value])=><div key={key}><dt>{key}</dt><dd>{value===null?"—":String(value)}</dd></div>)}</dl></details>)}<button type="button" onClick={()=>setHistory(null)}>Cerrar historial</button></section>}
     {predictions&&<section className="panel data-preview"><h2>Pruebas exploratorias: {predictions.title}</h2><p>Son pruebas históricas del modelo sobre los valores capturados; no son pronósticos ni resultados validados para decisiones.</p>{predictions.items.length?predictions.items.map(p=><details key={p.id}><summary>#{p.id} · {(p.probability*100).toFixed(1)}% · {p.created.slice(0,10)} · {p.model}</summary><p className="footnote">{p.warning}</p><p className="footnote">Modelo SHA-256: {p.model_sha256} · Usuario: {p.created_by}</p><dl>{Object.entries(p.data).map(([key,value])=><div key={key}><dt>{key}</dt><dd>{value===null?"—":String(value)}</dd></div>)}</dl></details>):<p>No hay pruebas para este registro.</p>}<button type="button" onClick={()=>setPredictions(null)}>Cerrar pruebas</button></section>}

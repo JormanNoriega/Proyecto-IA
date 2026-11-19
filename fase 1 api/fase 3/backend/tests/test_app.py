@@ -29,6 +29,25 @@ def test_access_and_permissions(client):
     assert client.get("/api/v1/auth/me").status_code == 401
 
 
+def test_delete_batch_preserves_audit_and_ids(client):
+    from app import main
+    login(client, "admin")
+    row = {"cod_mpio": "20001", "a_o": "2026", "fuente": "Prueba", "fecha_referencia": "2026-01-01"}
+    preview = client.post("/api/v1/data/preview-record", json=row).json()
+    assert client.post("/api/v1/data/confirm/" + preview["token"]).status_code == 200
+    record = client.get("/api/v1/data/records").json()[0]
+    assert client.delete("/api/v1/data/batches/" + record["batch"]).json()["eliminados"] == 1
+    assert client.get("/api/v1/data/records").json() == []
+    with main.db() as con:
+        assert con.execute("SELECT deleted_by FROM operational_record_deletions").fetchone()[0] == "admin"
+    preview = client.post("/api/v1/data/preview-record", json=row).json()
+    assert client.post("/api/v1/data/confirm/" + preview["token"]).status_code == 200
+    assert client.get("/api/v1/data/records").json()[0]["id"] > record["id"]
+    client.post("/api/v1/auth/logout")
+    login(client, "operador")
+    assert client.delete("/api/v1/data/batches/" + record["batch"]).status_code == 403
+
+
 def test_operational_data_preview_and_confirmation(client):
     login(client, "admin")
     assert client.get("/api/v1/data/template/csv").status_code == 200
@@ -132,10 +151,14 @@ def test_annual_labels_and_zero_median():
         annual_labels(rows, {2026})
 
 
-def test_sample_import_and_automatic_version(client):
+def test_sample_import_and_automatic_version(client, tmp_path):
+    import subprocess
+    import sys
     from app import main
     login(client, "admin")
-    path = main.ROOT.parent.parent / "data" / "municipios_prueba.csv"
+    generator = main.ROOT.parent.parent / "data" / "generar_datos_prueba.py"
+    subprocess.run([sys.executable, str(generator), "--anio", "2026", "--salida", str(tmp_path)], check=True)
+    path = tmp_path / "municipios_prueba.csv"
     xlsx = path.with_suffix(".xlsx")
     excel_preview = client.post("/api/v1/data/preview", files={"file": (xlsx.name, xlsx.read_bytes(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")})
     assert excel_preview.status_code == 200, excel_preview.text
@@ -144,12 +167,12 @@ def test_sample_import_and_automatic_version(client):
     assert preview.status_code == 200, preview.text
     invalid = [r for r in preview.json()["rows"] if r["errores"]]
     assert not invalid, invalid[:3]
-    assert client.post("/api/v1/data/confirm/" + preview.json()["token"]).json()["guardados"] == 150
+    assert client.post("/api/v1/data/confirm/" + preview.json()["token"]).json()["guardados"] == 2000
     records = client.get("/api/v1/data/records").json()
     selected = [{"record_id": r["id"], "data_sha256": r["data_sha256"]} for r in records]
     result = client.post("/api/v1/dataset-versions", json={"operational_inputs": selected})
     assert result.status_code == 200, result.text
-    assert result.json()["operational_count"] == 150
+    assert result.json()["operational_count"] == 500
     with main.db() as con:
         assert con.execute("SELECT COUNT(*) FROM dataset_label_cohorts").fetchone()[0] == 1
 

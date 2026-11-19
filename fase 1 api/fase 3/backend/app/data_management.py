@@ -272,12 +272,14 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
             if not valid:
                 raise HTTPException(409, "No hay filas válidas para guardar.")
             now = datetime.now(timezone.utc).isoformat()
+            next_id = con.execute("SELECT MAX(value) FROM (SELECT COALESCE(MAX(id),0) AS value FROM operational_records UNION ALL SELECT COALESCE(MAX(record_id),0) FROM operational_record_deletions)").fetchone()[0] + 1
             try:
                 for row in valid:
                     data = row["data"]
-                    con.execute("INSERT INTO operational_records(code,year,data,source,reference_date,created,created_by,batch) VALUES (?,?,?,?,?,?,?,?)",
-                                (data["cod_mpio"], data["a_o"], json.dumps(data, ensure_ascii=False),
-                                 data["fuente"], data["fecha_referencia"], now, user["username"], token))
+                    con.execute("INSERT INTO operational_records(id,code,year,data,source,reference_date,created,created_by,batch) VALUES (?,?,?,?,?,?,?,?,?)",
+                                (next_id, data["cod_mpio"], data["a_o"], json.dumps(data, ensure_ascii=False),
+                                  data["fuente"], data["fecha_referencia"], now, user["username"], token))
+                    next_id += 1
             except sqlite3.IntegrityError:
                 raise HTTPException(409, "Los registros cambiaron; vuelva a validar el archivo.")
             con.execute("DELETE FROM data_previews WHERE token=?", (token,))
@@ -289,8 +291,22 @@ def register_data_routes(app, db, admin, features, source_data, predict_active, 
             rows = con.execute("SELECT id,code,year,data,source,reference_date,created,created_by,batch FROM operational_records ORDER BY id DESC LIMIT 500").fetchall()
         return [{"id": r["id"], "code": r["code"], "year": r["year"], "source": r["source"],
                  "reference_date": r["reference_date"], "created": r["created"], "created_by": r["created_by"],
-                 "batch": r["batch"], "data": json.loads(r["data"]),
-                 "data_sha256": hashlib.sha256(r["data"].encode("utf-8")).hexdigest()} for r in rows]
+                  "batch": r["batch"], "data": json.loads(r["data"]),
+                  "data_sha256": hashlib.sha256(r["data"].encode("utf-8")).hexdigest()} for r in rows]
+
+    @app.delete("/api/v1/data/batches/{batch}")
+    def delete_batch(batch: str, user=Depends(admin)):
+        with db() as con:
+            con.execute("BEGIN IMMEDIATE")
+            rows = con.execute("SELECT * FROM operational_records WHERE batch=? ORDER BY id", (batch,)).fetchall()
+            if not rows:
+                raise HTTPException(404, "Lote no encontrado o ya eliminado.")
+            now = datetime.now(timezone.utc).isoformat()
+            con.executemany("INSERT INTO operational_record_deletions VALUES (?,?,?,?)", [
+                (r["id"], json.dumps(dict(r), ensure_ascii=False), now, user["username"]) for r in rows
+            ])
+            con.execute("DELETE FROM operational_records WHERE batch=?", (batch,))
+        return {"eliminados": len(rows)}
 
     @app.get("/api/v1/data/territorial-records")
     def territorial_records(department: str, year: int, user=Depends(admin)):

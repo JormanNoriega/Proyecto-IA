@@ -79,6 +79,7 @@ def initialize():
         CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL, expires TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS records (id INTEGER PRIMARY KEY, code TEXT NOT NULL, year INTEGER NOT NULL, data TEXT NOT NULL, UNIQUE(code,year));
         CREATE TABLE IF NOT EXISTS operational_records (id INTEGER PRIMARY KEY, code TEXT NOT NULL, year INTEGER NOT NULL, data TEXT NOT NULL, source TEXT NOT NULL, reference_date TEXT NOT NULL, created TEXT NOT NULL, created_by TEXT NOT NULL, batch TEXT NOT NULL, UNIQUE(code,year));
+        CREATE TABLE IF NOT EXISTS operational_record_deletions (record_id INTEGER PRIMARY KEY, record_snapshot TEXT NOT NULL, deleted_at TEXT NOT NULL, deleted_by TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS operational_record_revisions (id INTEGER PRIMARY KEY, record_id INTEGER NOT NULL, data TEXT NOT NULL, changed_at TEXT NOT NULL, changed_by TEXT NOT NULL, action TEXT NOT NULL, FOREIGN KEY(record_id) REFERENCES operational_records(id));
         CREATE TABLE IF NOT EXISTS exploratory_predictions (id INTEGER PRIMARY KEY, record_id INTEGER NOT NULL, created TEXT NOT NULL, created_by TEXT NOT NULL, data TEXT NOT NULL, model TEXT NOT NULL, model_sha256 TEXT NOT NULL, probability REAL NOT NULL, warning TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS data_previews (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, created TEXT NOT NULL, data TEXT NOT NULL);
