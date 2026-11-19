@@ -14,7 +14,7 @@ DATA = Path(__file__).resolve().parent
 PIPELINE = DATA.parent / "fase 1 api" / "data"
 MAX_ROWS = 2000
 MAX_BYTES = 2_000_000
-SOURCE = "Datos sintéticos de prueba — NO usar para planificación ni entrenamiento"
+SOURCE = "Datos sintéticos — uso exclusivo para pruebas y demostraciones"
 METADATA = ("cod_mpio", "a_o", "fuente", "fecha_referencia")
 
 
