@@ -394,6 +394,109 @@ def test_manual_journey_assignments_validate_and_save(client, monkeypatch):
     assert client.put(url, json={"assignments": []}).status_code == 409
 
 
+def test_journey_user_order_selection_and_saved_snapshot(client, monkeypatch):
+    from app import main
+    login(client, "operador")
+    with main.db() as con:
+        base = con.execute(
+            "INSERT INTO bases(name,municipality_code,latitude,longitude,coordinate_source,created,created_by) VALUES(?,?,?,?,?,?,?)",
+            ("Base", "20001", 10.46, -73.25, "Prueba", "2026-01-01", "operador"),
+        ).lastrowid
+    row = {"cod_mpio": "20001", "nom_mpio": "Primero IA", "latitud": 10.46, "longitud": -73.25,
+           "poblacion": 1000, "pct_rural_disperso": 50, "pob_resguardos": 0, "probability": .9, "es_hub": 0}
+    other = {**row, "cod_mpio": "20011", "nom_mpio": "Elegido", "probability": .1}
+    far = {**row, "cod_mpio": "20013", "nom_mpio": "Lejano", "latitud": 0}
+    monkeypatch.setattr(main, "priorities", lambda *args: {"items": [row, other, far], "model": "Prueba"})
+    body = {"date": "2026-12-01", "department": "20", "year": 2021, "max_km": 10,
+            "bases": [{"id": base, "brigades": 1}], "priority_order": ["20013", "20011", "20001"]}
+    response = client.post("/api/v1/journeys/preview", json=body)
+    assert response.status_code == 200, response.text
+    draft = response.json()
+    assert [item["cod_mpio"] for item in draft["selected"]] == ["20011"]
+    assert draft["unassigned_municipalities"][0]["code"] == "20013"
+    assert "capacidad" in draft["unassigned_municipalities"][1]["reason"]
+    assert [item["cod_mpio"] for item in draft["suggested_candidates"]] == ["20001", "20011", "20013"]
+    saved = client.post(f"/api/v1/journeys/drafts/{draft['draft_token']}/save").json()
+    assert saved["parameters"]["priority_order"] == body["priority_order"]
+    assert client.get("/api/v1/plans").json()[0]["selected"] == saved["selected"]
+    for invalid in ([], ["20011", "20011"], ["99999"]):
+        assert client.post("/api/v1/journeys/preview", json={**body, "priority_order": invalid}).status_code == 422
+    only = client.post("/api/v1/journeys/preview", json={**body, "priority_order": ["20011"]}).json()
+    assert [item["cod_mpio"] for item in only["candidates"]] == ["20011"]
+
+
+def test_journey_priority_reassigns_base_to_preserve_earlier_choices(client, monkeypatch):
+    from app import main
+    login(client, "operador")
+    with main.db() as con:
+        bases = [con.execute(
+            "INSERT INTO bases(name,municipality_code,latitude,longitude,coordinate_source,created,created_by) VALUES(?,?,?,?,?,?,?)",
+            (name, "20001", 10.46, -73.25, "Prueba", "2026-01-01", "operador"),
+        ).lastrowid for name in ("A", "B")]
+    row = {"cod_mpio": "20001", "nom_mpio": "Primero", "latitud": 10.46, "longitud": -73.25,
+           "poblacion": 1000, "pct_rural_disperso": 50, "pob_resguardos": 0, "probability": .1, "es_hub": 0}
+    other = {**row, "cod_mpio": "20011", "nom_mpio": "Segundo"}
+    monkeypatch.setattr(main, "priorities", lambda *args: {"items": [row, other], "model": "Prueba"})
+    monkeypatch.setattr(main, "journey_distances", lambda *args: [[1, 1], [2, None]])
+    response = client.post("/api/v1/journeys/preview", json={"date": "2026-12-01", "department": "20",
+        "year": 2021, "max_km": 10, "bases": [{"id": b, "brigades": 1} for b in bases],
+        "priority_order": ["20001", "20011"]})
+    assert response.status_code == 200, response.text
+    assert [(s["cod_mpio"], s["base_id"]) for s in response.json()["selected"]] == [
+        ("20001", bases[1]), ("20011", bases[0])]
+
+
+def test_journey_road_route_for_draft_and_saved_plan(client, monkeypatch):
+    import json
+    from app import main
+
+    login(client, "operador")
+    user = client.get("/api/v1/auth/me").json()
+    plan = {
+        "created": "2026-01-01",
+        "distance_provider": "Haversine",
+        "bases": [{"id": 1, "latitude": 10.46, "longitude": -73.25}],
+        "selected": [{"base_id": 1, "cod_mpio": "20032", "latitud": 9.49, "longitud": -73.97, "distance_km": 130}],
+    }
+    with main.db() as con:
+        con.execute("INSERT INTO journey_drafts(token,user_id,created,data) VALUES(?,?,?,?)",
+                    ("test-route", user["id"], plan["created"], json.dumps(plan)))
+    geometry = {"type": "LineString", "coordinates": [[-73.25, 10.46], [-73.5, 10.2], [-73.97, 9.49]]}
+    payload = {"code": "Ok", "waypoints": [{"distance": 5}, {"distance": 10}],
+               "routes": [{"geometry": geometry, "distance": 155000, "duration": 7800}]}
+
+    class Response:
+        def json(self): return payload
+        def raise_for_status(self): pass
+
+    def road_route(url, **kwargs):
+        assert url.endswith("/route/v1/driving/-73.25,10.46;-73.97,9.49")
+        assert kwargs["params"]["geometries"] == "geojson"
+        return Response()
+
+    monkeypatch.setattr(main, "reserve_osrm_request", lambda: None)
+    monkeypatch.setattr(main.httpx, "get", road_route)
+    url = "/api/v1/journeys/road-route"
+    pair = {"base_id": 1, "municipality_code": "20032"}
+    draft = {**pair, "draft_token": "test-route"}
+    response = client.get(url, params=draft)
+    assert response.status_code == 200, response.text
+    assert response.json() == {"geometry": geometry, "distance_km": 155, "duration_minutes": 130}
+    assert client.get(url, params={**draft, "municipality_code": "20011"}).status_code == 404
+    saved = client.post("/api/v1/journeys/drafts/test-route/save").json()
+    assert saved["selected"][0]["distance_km"] == 130
+    saved_pair = {**pair, "plan_id": saved["id"]}
+    assert client.get(url, params=saved_pair).status_code == 200
+    payload["waypoints"][1]["distance"] = 1001
+    assert client.get(url, params=saved_pair).status_code == 422
+    payload["code"] = "NoRoute"
+    assert client.get(url, params=saved_pair).status_code == 422
+    client.post("/api/v1/auth/logout")
+    assert client.get(url, params=saved_pair).status_code == 401
+    login(client, "admin")
+    assert client.get(url, params=draft).status_code == 404
+
+
 def test_osrm_distance_unreachable_snap_and_failure(monkeypatch):
     import httpx
     from app import main

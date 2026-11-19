@@ -835,6 +835,7 @@ class JourneyRequest(BaseModel):
     distance_provider: str = Field(default="Haversine", pattern="^(Haversine|OSRM)$")
     expected_candidates_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     data_source: Literal["historico", "operativo"] = "historico"
+    priority_order: list[str] | None = Field(default=None, max_length=2000)
 
 
 def candidates_hash(prediction):
@@ -870,8 +871,16 @@ osrm_lock = threading.Lock()
 osrm_last_request = 0.0
 
 
-def journey_distances(bases, candidates, provider):
+def reserve_osrm_request():
     global osrm_last_request
+    with osrm_lock:
+        now = time.monotonic()
+        if now - osrm_last_request < 1.1:
+            raise HTTPException(429, "Espera un momento antes de volver a consultar el servidor OSRM de demostración.")
+        osrm_last_request = now
+
+
+def journey_distances(bases, candidates, provider):
     if provider == "Haversine":
         return [[haversine(b["latitude"], b["longitude"], c["latitud"], c["longitud"])
                  for c in candidates] for b in bases]
@@ -885,11 +894,7 @@ def journey_distances(bases, candidates, provider):
               "destinations": ";".join(str(i) for i in range(len(bases), len(bases) + len(candidates))),
               "annotations": "distance"}
     try:
-        with osrm_lock:
-            now = time.monotonic()
-            if now - osrm_last_request < 1.1:
-                raise HTTPException(429, "Espera un momento antes de volver a consultar el servidor OSRM de demostración.")
-            osrm_last_request = now
+        reserve_osrm_request()
         response = httpx.get(f"https://router.project-osrm.org/table/v1/driving/{coords}", params=params, timeout=20)
         data = response.json()
         if data.get("code") == "NoSegment":
@@ -934,8 +939,17 @@ def calculate_journey(body: JourneyRequest, user):
     records = prediction["items"]
     if len({r["cod_mpio"] for r in records}) != len(records):
         raise HTTPException(422, "Hay registros municipales duplicados para el período seleccionado.")
+    if body.priority_order is not None:
+        codes = body.priority_order
+        known = {r["cod_mpio"] for r in records}
+        if not codes or len(set(codes)) != len(codes) or any(code not in known for code in codes):
+            raise HTTPException(422, "Selecciona municipios válidos sin repetir para establecer la prioridad.")
+        by_code = {r["cod_mpio"]: r for r in records}
+        ordered_records = [by_code[code] for code in codes]
+    else:
+        ordered_records = records
     candidates, excluded = [], []
-    for row in records:
+    for row in ordered_records:
         lat, lon, population = row["latitud"], row["longitud"], row["poblacion"]
         if (lat is None or lon is None or population is None or
             not all(math.isfinite(float(v)) for v in (lat, lon, population)) or
@@ -952,7 +966,41 @@ def calculate_journey(body: JourneyRequest, user):
                 benefit = municipality["probability"] * math.log1p(max(0, municipality["poblacion"] * (municipality["pct_rural_disperso"] or 0) / 100 + (municipality["pob_resguardos"] or 0)))
                 pairs.append((bi, mi, distance, benefit - .005 * distance))
     selected = []
-    if pairs:
+    if pairs and body.priority_order is not None:
+        # Incremental bipartite matching preserves every earlier feasible choice,
+        # reassigning its base when necessary to accommodate a later candidate.
+        options = {mi: [] for mi in range(len(candidates))}
+        for bi, mi, distance, score in pairs:
+            options[mi].append((distance, bi, score))
+        for choices in options.values():
+            choices.sort()
+        assignments = {}
+        slots = {bi: [] for bi in range(len(bases))}
+
+        def assign(mi, visited):
+            for distance, bi, score in options[mi]:
+                if bi in visited:
+                    continue
+                visited.add(bi)
+                if len(slots[bi]) < bases[bi]["brigades"]:
+                    slots[bi].append(mi)
+                    assignments[mi] = (bi, distance, score)
+                    return True
+                for displaced in list(slots[bi]):
+                    if assign(displaced, visited):
+                        slots[bi].remove(displaced)
+                        slots[bi].append(mi)
+                        assignments[mi] = (bi, distance, score)
+                        return True
+            return False
+
+        for mi in range(len(candidates)):
+            assign(mi, set())
+        for mi in sorted(assignments):
+            bi, distance, score = assignments[mi]
+            selected.append({**candidates[mi], "base_id": bases[bi]["id"], "base_name": bases[bi]["name"],
+                             "distance_km": round(distance, 2), "objective_score": round(score, 6)})
+    elif pairs:
         matrix = np.zeros((len(bases) + len(candidates), len(pairs)))
         for i, (bi, mi, _, _) in enumerate(pairs):
             matrix[bi, i] = 1
@@ -978,7 +1026,8 @@ def calculate_journey(body: JourneyRequest, user):
         connected = any(distances[bi][mi] is not None for bi in range(len(bases)))
         reason = ("Sin conexión vial o punto ajustado a más de 1 km de la red OSRM." if not connected and body.distance_provider == "OSRM"
                   else "Sin base dentro de la distancia máxima." if c["cod_mpio"] not in accessible_codes
-                  else "No seleccionado por el optimizador.")
+                   else "Sin capacidad disponible respetando las prioridades anteriores." if body.priority_order is not None
+                   else "No seleccionado por el optimizador.")
         remaining.append({"code": c["cod_mpio"], "name": c["nom_mpio"], "reason": reason})
     created = datetime.now(timezone.utc).isoformat()
     plan = {
@@ -986,13 +1035,15 @@ def calculate_journey(body: JourneyRequest, user):
         "parameters": body.model_dump(mode="json"), "bases": [
             {**b, "assigned": used[b["id"]], "unused": b["brigades"] - used[b["id"]]} for b in bases],
         "selected": selected, "unassigned_municipalities": remaining, "excluded": excluded,
-        "candidates": records, "distance_provider": body.distance_provider, "distance_direction": "ida",
+        "candidates": ordered_records, "suggested_candidates": records, "distance_provider": body.distance_provider, "distance_direction": "ida",
         "distance_calculated_at": created,
         "distance_service": "router.project-osrm.org (demostración)" if body.distance_provider == "OSRM" else "cálculo local",
         "distance_matrix": [{"base_id": b["id"], "municipality_code": c["cod_mpio"], "distance_km": distances[bi][mi]}
                             for bi, b in enumerate(bases) for mi, c in enumerate(candidates)],
         "model": prediction.get("model"), "model_sha256": prediction.get("model_sha256"), "model_warning": prediction.get("warning"),
-        "objective": "Provisional: probabilidad × log(1 + población rural dispersa + población de resguardos) − 0.005 × km; se permiten asignaciones vacías.",
+        "objective": ("Prioridad elegida por el usuario; se asignan los municipios factibles en ese orden, respetando capacidad y distancia. Se priorizan conexiones cercanas, sin optimizar la distancia total."
+                      if body.priority_order is not None else
+                      "Provisional: probabilidad × log(1 + población rural dispersa + población de resguardos) − 0.005 × km; se permiten asignaciones vacías."),
         "warning": ("Datos operativos declarados; estimación exploratoria. " if body.data_source == "operativo" else "Datos históricos. ") + "Probabilidades no calibradas y fórmula sin validación. " + ("Distancia en línea recta, no carretera." if body.distance_provider == "Haversine" else "OSRM es una estimación vial; no confirma transitabilidad ni acceso."),
     }
     return plan
@@ -1108,6 +1159,75 @@ def create_plan(body: PlanRequest, user=Depends(current_user)):
         cur = con.execute("INSERT INTO plans(user_id,created,data) VALUES(?,?,?)", (user["id"], datetime.now(timezone.utc).isoformat(), json.dumps(plan, ensure_ascii=False)))
         plan["id"] = cur.lastrowid
     return plan
+
+
+@app.get("/api/v1/journeys/road-route")
+def journey_road_route(
+    municipality_code: str, base_id: int, plan_id: int | None = None,
+    draft_token: str | None = None, user=Depends(current_user),
+):
+    if (plan_id is None) == (draft_token is None):
+        raise HTTPException(422, "Indica una jornada guardada o un borrador.")
+    with db() as con:
+        if draft_token is not None:
+            row = con.execute("SELECT data FROM journey_drafts WHERE token=? AND user_id=?", (draft_token, user["id"])).fetchone()
+        else:
+            row = con.execute(
+                "SELECT data FROM plans WHERE id=? AND (user_id=? OR ?='admin')",
+                (plan_id, user["id"], user["role"]),
+            ).fetchone()
+    if row is None:
+        raise HTTPException(404, "No se encontró la jornada.")
+    plan = json.loads(row["data"])
+    destination = next((a for a in plan.get("selected", [])
+                        if a.get("base_id") == base_id and a["cod_mpio"] == municipality_code), None)
+    base = next((b for b in plan.get("bases", []) if b["id"] == base_id), None)
+    if destination is None or base is None:
+        raise HTTPException(404, "La ruta no corresponde a una asignación de esta jornada.")
+
+    def valid_point(point):
+        return (isinstance(point, list) and len(point) == 2 and
+                all(isinstance(value, (int, float)) and math.isfinite(value) for value in point) and
+                -180 <= point[0] <= 180 and -90 <= point[1] <= 90)
+
+    origin = [base["longitude"], base["latitude"]]
+    target = [destination["longitud"], destination["latitud"]]
+    if not valid_point(origin) or not valid_point(target):
+        raise HTTPException(422, "La asignación no tiene coordenadas válidas para consultar una ruta.")
+    coords = f"{origin[0]},{origin[1]};{target[0]},{target[1]}"
+    reserve_osrm_request()
+    try:
+        response = httpx.get(
+            f"https://router.project-osrm.org/route/v1/driving/{coords}",
+            params={"overview": "full", "geometries": "geojson", "steps": "false", "alternatives": "false"},
+            timeout=15,
+        )
+        data = response.json()
+        if data.get("code") in {"NoRoute", "NoSegment"}:
+            raise HTTPException(422, "OSRM no encontró una ruta por carretera entre estos puntos.")
+        response.raise_for_status()
+        if data.get("code") != "Ok":
+            raise ValueError("Respuesta inesperada de OSRM")
+        waypoints = data["waypoints"]
+        if len(waypoints) != 2:
+            raise ValueError("Puntos de ruta incompletos")
+        snaps = [float(point["distance"]) for point in waypoints]
+        if any(not math.isfinite(value) or value < 0 for value in snaps):
+            raise ValueError("Ajuste de puntos inválido")
+        if any(value > 1000 for value in snaps):
+            raise HTTPException(422, "Un punto queda a más de 1 km de la vía que encontró OSRM.")
+        route = data["routes"][0]
+        geometry = route["geometry"]
+        points = geometry["coordinates"]
+        distance, duration = float(route["distance"]), float(route["duration"])
+        if (geometry["type"] != "LineString" or not isinstance(points, list) or len(points) < 2 or
+                not all(valid_point(point) for point in points) or
+                any(not math.isfinite(value) or value < 0 for value in (distance, duration))):
+            raise ValueError("Ruta inválida")
+        return {"geometry": {"type": "LineString", "coordinates": points},
+                "distance_km": distance / 1000, "duration_minutes": duration / 60}
+    except (httpx.HTTPError, ValueError, TypeError, KeyError, IndexError, AttributeError, OverflowError):
+        raise HTTPException(503, "No se pudo consultar la ruta vial en OSRM. Intenta de nuevo.") from None
 
 
 @app.get("/api/v1/plans")

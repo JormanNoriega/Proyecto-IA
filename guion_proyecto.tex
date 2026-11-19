@@ -1,0 +1,1073 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.3cm,headheight=15pt]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage[table]{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage[hyphens,obeyspaces]{url}
+\usepackage{hyperref}
+\definecolor{verde}{HTML}{214E43}
+\definecolor{gris}{HTML}{F1F5F3}
+\definecolor{tinta}{HTML}{243431}
+\hypersetup{colorlinks=true,linkcolor=verde,urlcolor=verde,
+ pdftitle={Territorio Salud: documentación y guion de exposición},
+ pdfauthor={Equipo del Proyecto de Aula IA}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{3em}
+\setcounter{tocdepth}{1}
+\setlist[itemize]{nosep,leftmargin=*}
+\setlist[enumerate]{nosep,leftmargin=*}
+\setlist[description]{nosep,style=nextline,leftmargin=0pt,labelindent=0pt,labelwidth=0pt,font=\bfseries}
+\raggedbottom
+\renewcommand{\arraystretch}{1.18}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Territorio Salud}
+\fancyhead[R]{\small Documentación y guion}
+\fancyfoot[C]{\thepage}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,
+ backgroundcolor=\color{gris},frame=single,rulecolor=\color{verde},
+ columns=fullflexible,keepspaces=true,showstringspaces=false,
+ inputencoding=utf8,extendedchars=true}
+\newcommand{\campo}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\ruta}[1]{{\small\path{#1}}}
+\newcommand{\nota}[1]{\begin{quote}\color{verde}\textbf{Clave para exponer.} #1\end{quote}}
+\newcommand{\advertencia}[1]{\begin{quote}\textbf{Límite de interpretación.} #1\end{quote}}
+\newcommand{\evidencia}[1]{\par{\footnotesize\textbf{Evidencia en el repositorio:} #1}\par}
+\begin{document}
+\begin{titlepage}
+\color{tinta}
+{\large Universidad Popular del Cesar\par}
+{\normalsize Ingeniería de Sistemas e Informática\par}
+\vspace{2cm}
+{\Huge\bfseries Territorio Salud\par}
+\vspace{0.5cm}
+{\LARGE Sistema inteligente de priorización y optimización espacial de brigadas de salud extramurales\par}
+\vspace{1cm}
+{\Large Documentación técnica y guion de exposición\par}
+\vspace{0.5cm}
+{\large Datos, etiquetas, algoritmos, arquitectura y uso de la aplicación\par}
+\vfill
+\textbf{Equipo de desarrollo}\\
+Jorman David Noriega Dávila\\
+Julio César Ríos Maldonado\\
+Gabriel Omar Venegas González
+\vspace{0.7cm}
+
+\textbf{Docente}\\
+Tonny Jiménez
+\vspace{0.7cm}
+
+Proyecto de Aula --- Inteligencia Artificial\\
+Valledupar, Cesar --- 2026
+\vspace{0.8cm}
+
+{\small Documento elaborado a partir del código y de los activos presentes en el repositorio. No implica que la aplicación haya sido validada en un despliegue sanitario real. Fecha de revisión: 19 de noviembre de 2026.}
+\end{titlepage}
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+
+\chapter*{Cómo utilizar este documento}
+\addcontentsline{toc}{chapter}{Cómo utilizar este documento}
+Este documento reúne la explicación del proyecto y un guion para defenderlo ante un docente o un equipo de planificación. Los capítulos técnicos permiten fundamentar las respuestas; el capítulo de exposición ofrece un discurso breve y una secuencia de demostración.
+
+La fuente principal es el \textbf{código ejecutable}, no únicamente el README. Se diferencian tres capas:
+\begin{enumerate}
+\item \textbf{Fase 1:} integración de fuentes públicas y construcción del dataset y de las etiquetas.
+\item \textbf{Fase 2:} comparación experimental de cuatro clasificadores y optimización desde una base fija.
+\item \textbf{Fase 3:} aplicación local con autenticación, datos operativos, laboratorio de IA y planificación multibase.
+\end{enumerate}
+Los resultados numéricos históricos se toman de los reportes versionados; los conteos se comprobaron sobre el CSV disponible. No se reentrenaron modelos para redactar este documento y no se presume cuál está publicado en una instalación concreta.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Pregunta central} & \textbf{Respuesta corta}\\
+\midrule
+¿Qué predice? & La pertenencia a la clase de prioridad alta definida mediante una brecha histórica de consultas.\\
+¿Qué observa? & 27 predictores municipales: demografía, geografía, NBI, sedes, contexto étnico y perfiles RIPS.\\
+¿Cuál es la etiqueta? & \campo{prioridad_alta}: 0 o 1 en las filas elegibles; puede faltar en otras filas.\\
+¿Qué recomienda? & Asignaciones de brigadas desde bases seleccionadas hacia municipios candidatos.\\
+¿Decide por el personal? & No. La propuesta debe revisarse y confirmarse por una persona.\\
+¿Diagnostica enfermedades? & No. Trabaja con agregados municipales, no con pacientes individuales.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{En qué consiste el proyecto}
+\section{Problema y propósito}
+Las comunidades rurales dispersas y los resguardos indígenas pueden enfrentar barreras geográficas y socioeconómicas para acceder a la atención primaria. Los recursos de una brigada son limitados: equipos, personal, vehículos, tiempo y desplazamientos. Una planificación basada solo en solicitudes o costumbre puede dejar territorios con necesidades sin una revisión sistemática.
+
+El proyecto busca apoyar dos preguntas diferentes:
+\begin{enumerate}
+\item \textbf{Predictiva:} ¿qué municipios presentan características asociadas a una mayor brecha de atención según el criterio histórico construido?
+\item \textbf{Prescriptiva:} con las bases y brigadas disponibles, ¿qué asignación territorial resulta más conveniente según una función objetivo y restricciones explícitas?
+\end{enumerate}
+El aporte es integrar datos, clasificación y optimización en una herramienta consultable y trazable. No está demostrado que el prototipo reduzca efectivamente inequidades o mejore resultados clínicos; esos impactos requieren evaluación de campo.
+
+\section{Qué se atiende: municipio, hospital y paciente}
+\textbf{No se determina ``qué hospital se atiende''.} La unidad analítica es un \textbf{municipio en un año}, y la unidad de la propuesta logística es una \textbf{asignación base--municipio}.
+\begin{description}
+\item[Hospital o base operativa:] punto de salida de los recursos. Puede representar una institución de salud registrada por el usuario.
+\item[Municipio candidato:] territorio hacia el cual se propone enviar una brigada.
+\item[Lugar de atención:] sede, vereda, comunidad o punto concreto donde se ejecutaría la jornada. No queda determinado por el punto municipal del mapa.
+\item[Paciente:] no es la unidad modelada. No se hace diagnóstico ni triaje individual.
+\end{description}
+En la fase 2 se fija una base en Valledupar, con coordenadas asociadas por el script al Hospital Rosario Pumarejo de López. En la fase 3 el usuario registra y selecciona una o varias bases y declara su capacidad para cada jornada. El sistema no elige automáticamente un hospital por su capacidad clínica ni certifica que esté habilitado.
+
+\nota{``La IA estima la prioridad de los municipios; el optimizador propone desde qué base enviar las brigadas. El lugar de atención y la decisión final se validan en territorio.''}
+
+\section{Alcance y exclusiones}
+El alcance implementado es un prototipo local para Colombia, con vista inicial en Cesar. Hay dos roles, consulta territorial, registro de bases, gestión de datos, entrenamiento y publicación de modelos, consulta manual y planificación.
+
+No se modelan de forma integral presupuestos monetarios, especialidades médicas, turnos, inventarios, tiempos de consulta, retorno a la base, múltiples visitas por brigada, seguridad o estado real de vías. Tampoco hay un ciclo completo de seguimiento de pacientes y resultados posteriores a la jornada.
+
+\chapter{Fuentes y construcción del dataset}
+\section{Fuentes utilizadas}
+\begin{longtable}{@{}p{0.18\textwidth}p{0.35\textwidth}p{0.39\textwidth}@{}}
+\toprule
+\textbf{Fuente} & \textbf{Información integrada} & \textbf{Referencia local u origen}\\
+\midrule
+\endhead
+DIVIPOLA & Códigos territoriales, nombres y coordenadas municipales. & DANE/MinSalud, datos.gov.co: \campo{gdxc-w37w}.\\
+RIPS & Consultas, urgencias, hospitalizaciones, procedimientos y perfil de códigos diagnósticos. & MinSalud, datos.gov.co: \campo{4k9h-8qiu}; período 2017--2021.\\
+REPS & Número de sedes y sedes públicas ESE. & datos.gov.co: \campo{c36g-9fc2}. El conteo no mide por sí solo capacidad clínica efectiva.\\
+Resguardos & Número de resguardos y población asociada. & \campo{epzt-64uw}; integración de contexto étnico.\\
+Comunidades & Número de comunidades indígenas según la fuente procesada. & \campo{fmd2-kgwe}.\\
+Población & Población municipal por año y porcentaje rural disperso. & Archivos DANE locales, procesados por el ETL de población.\\
+NBI & Pobreza multidimensional y componentes generales y rurales. & Censo DANE 2018, archivo \ruta{CNPV-2018-NBI-DIVIPOLA-2021.xlsx}.\\
+MGN 2025 & Geometrías departamentales y municipales para validar bases y visualizar contornos. & Capa geográfica de fase 3; no es una variable nueva del clasificador.\\
+\bottomrule
+\end{longtable}
+La configuración también contiene identificadores BDUA, pero no deben presentarse como predictores efectivamente usados: no aparecen en la lista de 27 características.
+
+\section{Flujo ETL}
+ETL significa extracción, transformación y carga. La secuencia efectiva es:
+\begin{enumerate}
+\item Obtener el maestro territorial DIVIPOLA y normalizar códigos.
+\item Agregar RIPS por municipio, año y tipo de atención.
+\item Extraer el perfil diagnóstico por municipio y letra inicial del código.
+\item Agregar sedes REPS y contexto de resguardos y comunidades.
+\item Procesar población, ruralidad y NBI de los archivos locales.
+\item Crear todas las combinaciones de municipio y año; unir las fuentes por \campo{cod_mpio} y, cuando corresponde, \campo{a_o}.
+\item Calcular tasas, bandas poblacionales, brechas, hubs y etiqueta.
+\item Asignar particiones por municipio y exportar CSV y Parquet.
+\end{enumerate}
+CSV facilita inspección e intercambio; Parquet conserva tipos y facilita lectura analítica. Los scripts de modelado reutilizan estos productos, por lo que no es necesario consultar nuevamente las APIs para cada demostración.
+
+\section{Dimensiones comprobadas}
+El archivo \ruta{fase 1 api/data/modelo/municipio_anio.csv} contiene:
+\begin{itemize}
+\item \textbf{5.610 filas y 74 columnas}.
+\item \textbf{1.122 códigos territoriales} y cinco años: 2017, 2018, 2019, 2020 y 2021.
+\item 1.798 filas con etiqueta 1, 3.596 con etiqueta 0 y 216 sin etiqueta.
+\item 211 filas identificadas como hub.
+\item 300 filas marcadas con \campo{sin_rips=True}.
+\end{itemize}
+Las 1.122 entidades incluyen, según el catálogo del proyecto, áreas no municipalizadas e islas. ``Municipios'' es una simplificación operativa de la nomenclatura, no una verificación de que todos los códigos correspondan al mismo tipo jurídico.
+
+\section{Variables temporales y estáticas}
+No todas las columnas cambian anualmente. Los RIPS y la población se organizan por año, pero NBI corresponde al censo de 2018 y varias fuentes de infraestructura y contexto se unen solo por municipio. El perfil CIE se agrega sobre el período y se repite en los años del panel.
+
+\advertencia{El panel no es una serie de mediciones homogéneas actualizadas cada año para todas las variables. No debe afirmarse que una predicción con año 2026 está validada solo por permitir ingresar ese año.}
+
+\evidencia{\ruta{fase 1 api/config/fuentes.json}; scripts \campo{etl_00_divipola.py} a \campo{etl_06_nbi.py} y \campo{build_tabla_modelo.py} en \ruta{fase 1 api/fase 1/src/}.}
+
+\chapter{Variables de entrada, etiquetas y resultados}
+\section{Distinción entre X, y y decisión logística}
+En aprendizaje supervisado se utilizan pares de observaciones:
+\[
+X_i=(x_{i1},x_{i2},\ldots,x_{i27}), \qquad
+y_i=\campo{prioridad_alta}_i.
+\]
+\textbf{X} describe el municipio; \textbf{y} es la etiqueta histórica que se busca aprender. El modelo produce una puntuación probabilística $\hat p_i$ y una clase estimada $\hat y_i$. Después el optimizador produce una decisión binaria $x_{bi}$ de asignación. Esta última no es la etiqueta de entrenamiento ni una variable de entrada del clasificador.
+
+\section{Las 27 variables predictoras}
+La lista es la misma en \campo{FEATURES} de fase 2 y del backend de fase 3. No se utilizan las 74 columnas del dataset como entrada.
+
+{\small
+\begin{longtable}{@{}r p{0.30\textwidth}p{0.53\textwidth}@{}}
+\toprule
+\textbf{N.} & \textbf{Nombre exacto} & \textbf{Significado y unidad}\\
+\midrule
+\endhead
+1 & \campo{latitud} & Coordenada municipal de referencia, grados decimales.\\
+2 & \campo{longitud} & Coordenada municipal de referencia, grados decimales.\\
+3 & \campo{poblacion} & Población del municipio, personas.\\
+4 & \campo{pct_rural_disperso} & Población rural dispersa, porcentaje de 0 a 100.\\
+5 & \campo{banda_pob} & Quintil nacional de población, categoría de 0 a 4.\\
+\midrule
+6 & \campo{nbi_total} & Porcentaje con necesidades básicas insatisfechas.\\
+7 & \campo{nbi_miseria} & Porcentaje en miseria según NBI.\\
+8 & \campo{nbi_vivienda} & Porcentaje del componente de vivienda inadecuada.\\
+9 & \campo{nbi_servicios} & Porcentaje del componente de servicios inadecuados.\\
+10 & \campo{nbi_hacinamiento} & Porcentaje del componente de hacinamiento.\\
+11 & \campo{nbi_inasistencia} & Porcentaje del componente de inasistencia escolar.\\
+12 & \campo{nbi_dependencia} & Porcentaje del componente de dependencia económica.\\
+13 & \campo{nbi_rural} & Porcentaje de NBI del ámbito rural de la fuente.\\
+14 & \campo{nbi_rural_miseria} & Porcentaje de miseria rural.\\
+15 & \campo{nbi_rural_servicios} & Porcentaje rural del componente de servicios.\\
+16 & \campo{nbi_rural_hacinamiento} & Porcentaje rural del componente de hacinamiento.\\
+\midrule
+17 & \campo{n_sedes} & Número de sedes de salud registradas.\\
+18 & \campo{n_sedes_ese} & Número de sedes ESE; subconjunto de las sedes totales.\\
+19 & \campo{sedes_10k_hab} & Sedes por 10.000 habitantes.\\
+\midrule
+20 & \campo{n_resguardos} & Número de resguardos.\\
+21 & \campo{pob_resguardos} & Población reportada en resguardos, personas.\\
+22 & \campo{n_comunidades} & Número de comunidades.\\
+\midrule
+23 & \campo{pct_cap_O} & Porcentaje de registros diagnósticos de prefijo O: embarazo, parto y puerperio.\\
+24 & \campo{pct_cap_A} & Porcentaje de prefijo A: parte de las enfermedades infecciosas y parasitarias.\\
+25 & \campo{pct_cap_J} & Porcentaje de prefijo J: enfermedades respiratorias.\\
+26 & \campo{pct_cap_K} & Porcentaje de prefijo K: enfermedades digestivas.\\
+27 & \campo{pct_cap_Z} & Porcentaje de prefijo Z: factores de contacto con servicios de salud.\\
+\bottomrule
+\end{longtable}
+}
+Por grupos: \textbf{5} demográficas/geográficas, \textbf{11} NBI, \textbf{3} infraestructura, \textbf{3} contexto étnico y \textbf{5} perfil diagnóstico: $5+11+3+3+5=27$.
+
+Dos precisiones evitan errores en la exposición:
+\begin{itemize}
+\item El código llama a las variables diagnósticas ``capítulos'', pero agrupa por la \textbf{primera letra}, no por el capítulo completo formal de CIE-10. Por ejemplo, A no incorpora automáticamente B.
+\item Los porcentajes elegidos no tienen por qué sumar 100: son cinco grupos de un conjunto mayor. El denominador del ETL incluye los registros conservados con prefijos alfabéticos, sobre consultas, urgencias y hospitalizaciones; excluye procedimientos CUPS.
+\end{itemize}
+La variable derivada de infraestructura se calcula como:
+\[
+\campo{sedes_10k_hab}=\frac{\campo{n_sedes}}{\campo{poblacion}}\times10.000.
+\]
+
+\section{Qué variables están etiquetadas}
+No se ``etiquetan'' separadamente las 27 variables. Se etiqueta \textbf{cada fila municipio--año} con una variable objetivo:
+\begin{description}
+\item[\campo{prioridad_alta}=1:] brecha de consultas en el tercio superior de las filas válidas no hub, según el umbral histórico.
+\item[\campo{prioridad_alta}=0:] fila válida no hub que no alcanza ese umbral.
+\item[Etiqueta ausente:] fila no elegible o con brecha no calculable. No debe convertirse automáticamente en 0.
+\end{description}
+\campo{brecha_consultas} es un indicador continuo utilizado para construir la etiqueta, pero el proyecto entrenado es de \textbf{clasificación binaria}, no un modelo de regresión de esa brecha.
+
+\campo{es_hub} es una clasificación auxiliar de referencia regional; no es el target aprendido. \campo{split} indica la partición; \campo{cod_mpio}, \campo{cod_dpto}, \campo{nom_mpio} y \campo{a_o} identifican y filtran registros, pero no integran \campo{FEATURES}.
+
+\section{Qué no entra al modelo y por qué}
+No se incluyen directamente en X las consultas, su tasa, el benchmark, la brecha ni la propia etiqueta. Sus nombres son \campo{consultas}, \campo{consultas_1000hab}, \campo{bench_consultas}, \campo{brecha_consultas} y \campo{prioridad_alta}. Usar esas variables como entrada permitiría reconstruir trivialmente la etiqueta y daría una evaluación engañosa. Tampoco se incluyen directamente las otras tasas de atenciones o las brechas global y nacional.
+
+Esto \textbf{reduce} fugas directas, pero no elimina todas las contaminaciones: la construcción global del target y el preprocesamiento histórico siguen teniendo limitaciones, explicadas más adelante.
+
+\section{Captura operativa: 31 campos no son 31 predictores}
+La plantilla y el formulario individual de Gestión de datos contienen:
+\begin{itemize}
+\item 27 predictores.
+\item 4 metadatos: \campo{cod_mpio}, \campo{a_o}, \campo{fuente} y \campo{fecha_referencia}.
+\end{itemize}
+El nombre municipal y el departamento se resuelven con el catálogo. La etiqueta \textbf{no se exige para importar datos ni consultar el modelo}. Para usar un operativo en entrenamiento se selecciona después en Laboratorio IA y se añade una etiqueta 0/1 y su origen declarado.
+
+\evidencia{\ruta{fase 1 api/fase 2/src/modelado.py}, lista \campo{FEATURES}; \ruta{fase 1 api/fase 3/backend/app/data_dictionary.py}; \campo{data_management.py}; \campo{DatasetCreate} y \campo{TrainingInput} en \campo{main.py}.}
+
+\chapter{Cómo se construye el target}
+\section{¿A partir de cuántas variables?}
+Hay que distinguir \textbf{mediciones de origen} de \textbf{variables intermedias}.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Papel} & \textbf{Variables}\\
+\midrule
+Dos mediciones sustantivas & \campo{consultas} y \campo{poblacion}.\\
+Dos claves de contexto & \campo{cod_mpio} y \campo{a_o}: identifican el municipio y el año para agrupar y asignar la población de referencia.\\
+Intermedias calculadas & Tasa de consultas, percentil 99 anual, \campo{banda_pob}, mediana por pares, \campo{bench_consultas}, \campo{brecha_consultas}, \campo{es_hub} y umbral de prioridad.\\
+Etiqueta final & \campo{prioridad_alta}.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+\textbf{Respuesta precisa:} dos variables numéricas de origen, usando municipio y año como contexto; no se construye sumando las 27 predictoras. NBI, sedes y resguardos no intervienen directamente en la fórmula de la etiqueta histórica.
+
+\section{Paso 1: grupos comparables de población}
+Comparar el número bruto de consultas de un municipio pequeño con una capital sería inadecuado. El script toma la población del último año de referencia, \textbf{2021}, y asigna cinco quintiles nacionales:
+\[
+b_i\in\{0,1,2,3,4\}.
+\]
+Se utiliza el ranking de población con desempate por orden y \campo{qcut}; la banda del municipio se conserva en todos sus años. No se trata de cinco intervalos de igual anchura, sino de grupos aproximadamente iguales en número de entidades.
+
+\section{Paso 2: tasa de consultas}
+Para municipio $i$ y año $t$:
+\[
+r_{it}=\frac{C_{it}}{P_{it}}, \qquad
+T_{it}=1.000\,r_{it},
+\]
+donde $C$ es el número de consultas y $P$ la población. La población cero se reemplaza por un valor ausente para evitar dividir por cero. Una tasa puede superar 1.000 consultas por 1.000 habitantes porque una persona puede consultar varias veces y puede haber atención de población de otros municipios.
+
+\section{Paso 3: limitar extremos y calcular benchmark}
+El código calcula el percentil 99 de la tasa en cada año y limita los valores superiores:
+\[
+q_{99,t}=Q_{0,99}(\{r_{jt}\}_j), \qquad
+r^w_{it}=\min(r_{it},q_{99,t}).
+\]
+Esta winsorización reduce la influencia de tasas extremas. Después obtiene la mediana de la tasa limitada entre municipios de igual banda y año:
+\[
+m_{bt}=\operatorname{mediana}\{r^w_{jt}:b_j=b,\;t_j=t\}.
+\]
+La columna \campo{bench_consultas} guarda $1.000m_{bt}$ redondeado a dos decimales.
+
+\section{Paso 4: brecha relativa}
+\[
+g_{it}=\max\left(0,1-\frac{r^w_{it}}{m_{b_i t}}\right).
+\]
+\campo{brecha_consultas} almacena ese resultado redondeado a cuatro decimales. Cuando no hay una razón finita y definida, no debe interpretarse como una brecha válida.
+\begin{itemize}
+\item $g=0$: el municipio alcanza o supera la mediana de sus pares.
+\item $g=0,50$: su tasa limitada equivale aproximadamente a la mitad de esa mediana.
+\item $g$ cercano a 1: tasa muy inferior a la de sus pares.
+\end{itemize}
+La brecha no es el porcentaje de pacientes desatendidos ni un conteo de personas enfermas sin consulta. Es un indicador relativo de utilización reportada.
+
+\section{Paso 5: identificar hubs}
+Un hub es una entidad con tasa de consultas muy alta frente a sus pares:
+\[
+h_{it}=\mathbb{1}\left[
+\frac{r_{it}}{\campo{bench_consultas}_{it}/1.000}\geq3
+\right].
+\]
+Aquí el código usa la tasa original y el benchmark almacenado redondeado. Si la razón está ausente, el hub queda ausente.
+
+Los hubs pueden atender remisiones y población de otros territorios. Se excluyen del entrenamiento histórico para no confundir concentración de servicios con ausencia de necesidad. Esta clasificación es estadística, no una acreditación institucional.
+
+\section{Paso 6: umbral y etiqueta binaria}
+Entre las filas con brecha disponible que no tienen \campo{es_hub}=1, se obtiene:
+\[
+\tau=Q_{2/3}(\{g_{it}:\text{fila válida no hub}\}).
+\]
+La implementación utiliza exactamente el cuantil $2/3$, no el percentil 66 entero. Luego:
+\[
+y_{it}=
+\begin{cases}
+1,& \text{si la fila es válida y }g_{it}\geq\tau,\\
+0,& \text{si la fila es válida y }g_{it}<\tau,\\
+\text{ausente},& \text{en otro caso}.
+\end{cases}
+\]
+En el CSV revisado, $\tau\approx0,3366667$: una brecha de aproximadamente 33,67\,\% delimita la clase alta. Es un umbral empírico del dataset, no un umbral clínico universal. Al reconstruir el conjunto puede cambiar.
+
+\section{Ejemplo real: Aguachica, 2021}
+El CSV contiene:
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Consultas & 87.909\\
+Población & 123.137\\
+Banda poblacional & 4\\
+Benchmark por 1.000 habitantes & 1.902,56\\
+Brecha almacenada & 0,6248\\
+Hub & 0\\
+Etiqueta de prioridad alta & 1\\
+\bottomrule
+\end{tabular}
+\end{center}
+La tasa es aproximadamente $713,91$ consultas por 1.000 habitantes. Con las cifras publicadas:
+\[
+1-\frac{713,91}{1.902,56}\approx0,6248.
+\]
+Como supera el umbral y no está identificado como hub, recibe etiqueta 1. Las pequeñas diferencias al reproducir la operación provienen de los redondeos.
+
+\section{Tres cantidades que no deben confundirse}
+\begin{enumerate}
+\item \textbf{Umbral de construcción $\tau\approx0,3367$:} convierte la brecha histórica en la etiqueta.
+\item \textbf{Umbral del clasificador $0,5$:} convierte $\hat p$ en clase estimada dentro de la app.
+\item \textbf{Función objetivo logística:} combina $\hat p$, población vulnerable aproximada y distancia para seleccionar asignaciones.
+\end{enumerate}
+Un municipio puede tener etiqueta histórica 0, probabilidad inferior a 0,5 y aun así aparecer en una asignación logística. La planificación multibase considera todos los candidatos suficientemente completos, no solo los clasificados como altos.
+
+\section{Limitación crítica: ausencia de RIPS}
+El constructor marca \campo{sin_rips} cuando no encuentra el cruce RIPS, pero después completa los conteos de atención con cero. La regla de etiquetado no filtra explícitamente ese indicador.
+
+En el CSV hay \textbf{300 filas sin RIPS}: \textbf{295 terminan con etiqueta 1} y cinco sin etiqueta. Por ello, no es correcto afirmar que toda etiqueta alta está sustentada en consultas observadas bajas: en algunos casos refleja ausencia de reporte tratada como cero.
+
+La mejora metodológica es separar ``sin información'' de ``cero consultas observado'', revisar elegibilidad y reconstruir las etiquetas antes de afirmar validez asistencial.
+
+\evidencia{\ruta{fase 1 api/fase 1/src/build_tabla_modelo.py}: construcción de tasas, \campo{_brecha_par}, detección de hub y asignación de \campo{prioridad_alta}. La configuración conserva \campo{benchmark=nacional}, pero el código actual construye el target por pares; \campo{brecha_nacional} es una referencia heredada.}
+
+\chapter{Algoritmos y cómo se implementan}
+\section{Visión general}
+El componente de aprendizaje es \textbf{supervisado y de clasificación binaria}. La salida probabilística sirve para ordenar, pero no transforma el problema en regresión. No se implementan redes neuronales ni aprendizaje profundo.
+
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+\textbf{Método} & \textbf{Papel en fase 2} & \textbf{Uso en fase 3}\\
+\midrule
+DummyClassifier & Referencia de clase mayoritaria. & Referencia probabilística para comparar candidatos nuevos.\\
+Regresión logística & Clasificador lineal comparativo. & No se reentrena desde el laboratorio actual.\\
+Random Forest & Ensamble de árboles comparativo e importancias. & No se reentrena desde el laboratorio actual.\\
+HistGradientBoosting & Mejor F1 del reporte histórico; modelo heredado. & Candidato entrenable y modelo inicial si no hay uno publicado.\\
+MILP/HiGHS & Asignación desde una base fija. & Asignación multibase.\\
+Haversine / OSRM & Haversine en la demo histórica. & Distancia local o estimación vial externa, elegida por el usuario.\\
+\bottomrule
+\end{tabularx}
+
+\section{DummyClassifier: referencia mínima}
+En fase 2 se usa \campo{strategy="most_frequent"}: siempre predice la clase más frecuente del entrenamiento. Sirve para verificar que los modelos aprendidos mejoran algo más que el desbalance de clases.
+
+En fase 3 se usa \campo{strategy="prior"}: las probabilidades reflejan la proporción de clases del entrenamiento. No ofrece discriminación territorial real; su utilidad es comparativa.
+
+\section{Regresión logística}
+Estima una probabilidad mediante:
+\[
+\hat p_i=\frac{1}{1+\exp[-(\beta_0+\sum_j\beta_j x_{ij})]}.
+\]
+Aunque su nombre incluye ``regresión'', se usa para clasificar. Aprende una frontera lineal en las variables transformadas.
+
+Implementación histórica:
+\begin{itemize}
+\item \campo{StandardScaler} ajustado con entrenamiento; transformación de validación y prueba con ese escalador.
+\item \campo{LogisticRegression(class_weight="balanced", max_iter=1000, random_state=42)}.
+\item Persistencia del clasificador y del escalador en archivos \campo{.joblib} separados.
+\end{itemize}
+La ponderación balanceada aumenta el peso relativo de la clase menos frecuente. No corrige automáticamente todos los sesgos.
+
+\section{Random Forest}
+Construye muchos árboles sobre muestras y subconjuntos de características; combina sus resultados para reducir la variabilidad de un solo árbol. Cada árbol aprende reglas de división, y el ensamble produce una probabilidad agregada.
+
+La fase 2 usa \campo{GridSearchCV}, puntuación F1 y tres pliegues:
+\begin{itemize}
+\item \campo{n_estimators}: 100 o 200.
+\item \campo{max_depth}: 6, 10 o sin límite.
+\item \campo{min_samples_split}: 2 o 5.
+\item \campo{class_weight}: balanced.
+\end{itemize}
+Son 12 combinaciones. El registro histórico informa 200 árboles, profundidad 6, mínimo de división 2 y pesos balanceados como mejor combinación.
+
+El gráfico de importancia del bosque muestra reducción de impureza. No prueba causalidad ni explica automáticamente las predicciones del modelo de boosting.
+
+\section{HistGradientBoosting}
+Es un ensamble secuencial: cada etapa agrega árboles para mejorar la función de pérdida de las predicciones anteriores. Agrupa características numéricas en intervalos para acelerar la búsqueda de divisiones.
+
+Una forma esquemática de representarlo es:
+\[
+F_M(X)=F_0(X)+\eta\sum_{m=1}^{M}f_m(X).
+\]
+$\eta$ es la tasa de aprendizaje y $f_m$ representa el aporte de cada etapa. En clasificación la puntuación se transforma en probabilidad.
+
+La fase 2 busca:
+\begin{itemize}
+\item \campo{learning_rate}: 0,03; 0,08; 0,15.
+\item \campo{max_iter}: 100 o 150.
+\item \campo{max_leaf_nodes}: 15 o 31.
+\item \campo{min_samples_leaf}: 20 o 40.
+\end{itemize}
+Son 24 combinaciones, tres pliegues por combinación y F1 como criterio. El log histórico registra tasa 0,15; 100 iteraciones; 15 hojas máximas y 20 ejemplos mínimos por hoja.
+
+Se guarda como \campo{modelo_gradient_boosting.joblib}. Es el artefacto heredado que la app intenta utilizar mientras no se publique otro modelo.
+
+\section{Entrenamiento histórico frente al laboratorio de la app}
+\subsection{Fase 2}
+\begin{enumerate}
+\item Carga dataset; excluye hubs y filas sin etiqueta.
+\item Completa faltantes con medianas calculadas sobre el conjunto elegible completo.
+\item Separa usando la columna \campo{split}.
+\item Entrena cuatro métodos; aplica escalado al lineal.
+\item Ejecuta las búsquedas de hiperparámetros de RF y HGB.
+\item Calcula las métricas de los cuatro en prueba y guarda modelos, tablas y gráficos.
+\end{enumerate}
+Aunque carga validación y la transforma, el script no la usa para seleccionar al ganador. Tampoco respeta grupos municipales en la validación cruzada interna: \campo{cv=3} trabaja por filas. Estas son limitaciones del experimento histórico.
+
+\subsection{Fase 3}
+El laboratorio actual \textbf{no ejecuta esas dos búsquedas ni compara los cuatro métodos}. Su implementación es:
+\begin{enumerate}
+\item Carga una versión de dataset y verifica su checksum.
+\item Conserva filas con etiqueta 0/1, hub exactamente 0, municipio conocido y al menos 20 de 27 predictores disponibles.
+\item Requiere al menos 20 municipios elegibles y ambas clases; también comprueba ambas clases en cada partición.
+\item Genera separación municipal estratificada aproximada 70/15/15, semilla 42.
+\item Construye dos pipelines: imputador de mediana seguido de HGB con parámetros por defecto y semilla 42, o de Dummy con estrategia prior.
+\item Ajusta cada pipeline solo con entrenamiento y selecciona mayor F1 en validación.
+\item Guarda el candidato seleccionado y fija umbral 0,5; no optimiza el umbral.
+\item Permite evaluar posteriormente el candidato en prueba.
+\item Exige publicación explícita para cambiar el modelo activo.
+\end{enumerate}
+El entrenamiento se ejecuta en un hilo del proceso local. No es una cola distribuida de trabajos: al reiniciar, los experimentos pendientes o ejecutándose se marcan interrumpidos.
+
+\nota{``Probamos cuatro clasificadores en la fase experimental. La app actual reentrena dos candidatos: boosting y baseline, con imputación dentro del pipeline. Entrenar no equivale a publicar.''}
+
+\evidencia{\ruta{fase 1 api/fase 2/src/modelado.py}; \ruta{fase 1 api/logs/modelado_fase2.log}; funciones \campo{train_experiment}, \campo{evaluate_test} y \campo{publish_model} del backend.}
+
+\chapter{Evaluación y lectura responsable de los resultados}
+\section{Particiones}
+Todos los años de un municipio se mantienen juntos para evitar que el modelo vea el mismo territorio en entrenamiento y prueba. La estratificación utiliza la etiqueta máxima de cada municipio.
+
+\begin{center}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Partición} & \textbf{Municipios del panel} & \textbf{Filas del panel} & \textbf{Filas elegibles fase 2}\\
+\midrule
+Entrenamiento & 785 & 3.925 & 3.770\\
+Validación & 168 & 840 & 807\\
+Prueba & 169 & 845 & 817\\
+\midrule
+Total & 1.122 & 5.610 & 5.394\\
+\bottomrule
+\end{tabular}
+\end{center}
+Los conteos posteriores al filtrado no deben confundirse con los del panel completo. Los nuevos experimentos de fase 3 pueden tener cantidades distintas: vuelven a separar los municipios elegibles de la versión elegida.
+
+\section{Métricas}
+Con VP = verdaderos positivos, FP = falsos positivos, FN = falsos negativos y VN = verdaderos negativos:
+\[
+\operatorname{Precision}=\frac{VP}{VP+FP},\qquad
+\operatorname{Recall}=\frac{VP}{VP+FN},
+\]
+\[
+F1=2\frac{\operatorname{Precision}\operatorname{Recall}}
+{\operatorname{Precision}+\operatorname{Recall}},
+\qquad
+\operatorname{Accuracy}=\frac{VP+VN}{VP+VN+FP+FN}.
+\]
+\begin{itemize}
+\item \textbf{Precisión:} de los clasificados como altos, cuántos coinciden con la etiqueta.
+\item \textbf{Recall:} de los etiquetados altos, cuántos detecta el modelo. Es importante si preocupa dejar territorios prioritarios sin revisar.
+\item \textbf{F1:} equilibrio entre precisión y recall; criterio de las búsquedas históricas y la selección de candidatos de la app.
+\item \textbf{ROC-AUC:} capacidad de ordenamiento entre clases al variar el umbral.
+\item \textbf{PR-AUC:} el código reporta \campo{average_precision_score}; resume precisión--recall mediante precisión promedio, no necesariamente un área trapezoidal.
+\item \textbf{Matriz de confusión:} permite ver falsos positivos y falsos negativos en cantidades.
+\end{itemize}
+
+\section{Resultados históricos versionados}
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+\textbf{Modelo} & \textbf{Acc.} & \textbf{Prec.} & \textbf{Recall} & \textbf{F1} & \textbf{ROC} & \textbf{AP}\\
+\midrule
+Dummy & 0,6610 & 0,0000 & 0,0000 & 0,0000 & 0,5000 & 0,3390\\
+Logística & 0,6573 & 0,4952 & 0,5596 & 0,5254 & 0,6920 & 0,5926\\
+Random Forest & 0,7283 & 0,6211 & 0,5090 & 0,5595 & 0,7653 & 0,6803\\
+HistGradientBoosting & 0,7797 & 0,7413 & 0,5379 & 0,6234 & 0,7848 & 0,7414\\
+\bottomrule
+\end{tabular}
+\end{center}
+HGB tiene el mayor F1 de esta tabla, pero detecta alrededor del 53,79\,\% de las etiquetas altas: no identifica todas. El baseline logra 66,10\,\% de accuracy sin detectar ningún positivo, mostrando por qué accuracy sola no es suficiente.
+
+\advertencia{Son resultados del reporte de fase 2, no métricas nuevas del modelo publicado en cada instalación ni evidencia de efectividad clínica. La comparación histórica consultó prueba para todos los candidatos; no debe presentarse como una selección final completamente ciega.}
+
+\section{Contaminaciones y correcciones pendientes}
+\begin{enumerate}
+\item \textbf{Target previo a la partición:} bandas, benchmarks y umbral usan el conjunto global. La separación municipal posterior no deshace esa dependencia.
+\item \textbf{Imputación histórica global:} las medianas de fase 2 se calculan antes de separar, incorporando información de validación y prueba.
+\item \textbf{Validación cruzada interna por filas:} en fase 2 distintos años del mismo municipio pueden participar en pliegues de ajuste distintos.
+\item \textbf{Inferencia histórica inconsistente:} la demo y la carga heredada de la app sustituyen faltantes por cero, no por las medianas del entrenamiento.
+\item \textbf{Fuentes no contemporáneas:} varias características son estáticas o agregadas sobre el período.
+\item \textbf{Ausencia de reporte:} puede convertirse en consultas cero y aumentar artificialmente prioridad.
+\end{enumerate}
+La fase 3 mejora imputación y selección en validación, pero reutiliza etiquetas históricas ya construidas. Por tanto, también advierte contaminación. Se necesita reconstruir el protocolo para evaluar con reglas de etiqueta independientes y considerar una evaluación temporal externa.
+
+\section{Probabilidad no es certeza}
+Una salida de 0,80 significa una puntuación probabilística del clasificador, no que el 80\,\% de los habitantes esté desatendido. No se ha documentado calibración suficiente para interpretar esos valores como frecuencias reales confiables. Las importancias del bosque no deben usarse como explicación individual de HGB.
+
+\evidencia{\ruta{fase 1 api/fase 2/reportes/metricas_comparacion.json}; \campo{cargar_datos} en fase 2; \campo{predict_active}, \campo{legacy_predictions} y \campo{metrics} en fase 3.}
+
+\chapter{Cómo se seleccionan las brigadas y las bases}
+\section{De la probabilidad a una asignación}
+No basta con ordenar municipios por $\hat p$: una brigada puede estar lejos, dos bases pueden competir por el mismo destino y la capacidad es limitada. Por eso se usa \textbf{programación lineal entera mixta (MILP)}, mediante \campo{scipy.optimize.milp} y el solver HiGHS.
+
+Los modelos implementados usan decisiones binarias y restricciones lineales. Se llaman MILP por la herramienta utilizada; en estas formulaciones no es necesario introducir decisiones continuas adicionales.
+
+\section{Beneficio territorial provisional}
+Se aproxima una población vulnerable como:
+\[
+V_i=P_i\frac{R_i}{100}+I_i,
+\]
+donde $R_i$ es el porcentaje rural disperso e $I_i$ la población de resguardos. El puntaje para una base $b$ y un municipio $i$ es:
+\[
+s_{bi}=\hat p_i\ln(1+\max(0,V_i))-0,005\,d_{bi}.
+\]
+El logaritmo evita que el volumen poblacional domine de manera lineal. La distancia penaliza desplazamientos. El factor 0,005 es una decisión provisional del proyecto, \textbf{no una tarifa monetaria ni un parámetro clínico validado}.
+
+\advertencia{La población rural y la población de resguardos pueden superponerse. Su suma no representa necesariamente personas únicas. El puntaje es una heurística de planificación y necesita validación.}
+
+\section{Formulación multibase de la aplicación}
+Para los pares base--municipio con conexión disponible y distancia permitida:
+\[
+x_{bi}=
+\begin{cases}
+1 & \text{si se propone una brigada desde }b\text{ hacia }i,\\
+0 & \text{en otro caso}.
+\end{cases}
+\]
+\[
+\max \sum_{(b,i)\in E}s_{bi}x_{bi}
+\]
+sujeto a:
+\[
+\sum_{i:(b,i)\in E}x_{bi}\leq K_b\quad\forall b,
+\qquad
+\sum_{b:(b,i)\in E}x_{bi}\leq1\quad\forall i,
+\qquad x_{bi}\in\{0,1\}.
+\]
+$K_b$ es la capacidad declarada de la base para esa jornada. $E$ excluye conexiones sin distancia válida o por encima del máximo. SciPy minimiza, por lo que el código utiliza el negativo de los puntajes.
+
+Consecuencias:
+\begin{itemize}
+\item Una base no puede enviar más brigadas de las declaradas.
+\item Un municipio recibe como máximo una asignación en la jornada.
+\item No se exige utilizar todas las brigadas: si los puntajes o restricciones no lo favorecen, pueden quedar recursos libres.
+\item No se exige $\hat p_i\geq0,5$ para participar.
+\item No se optimiza una secuencia de visitas ni un circuito de vehículo. Es asignación, no un problema completo de ruteo.
+\end{itemize}
+
+\section{¿Cómo se elige el hospital de salida?}
+\begin{enumerate}
+\item Una persona registra bases con nombre, municipio, coordenadas y fuente de coordenadas.
+\item Para cada jornada selecciona las bases disponibles y cuántas brigadas tiene cada una.
+\item El optimizador evalúa conjuntamente los pares factibles.
+\item La asignación final considera puntaje y capacidades, no una preferencia médica automática por hospital.
+\end{enumerate}
+Para un mismo municipio, las variables territoriales y su probabilidad no cambian entre bases; la distancia sí. Una base más cercana suele ofrecer mejor puntaje para ese municipio, pero la solución conjunta puede elegir otra por las capacidades y la conveniencia del conjunto de destinos.
+
+\section{Haversine y OSRM}
+\subsection{Haversine: cálculo local}
+Con latitudes $\varphi$, longitudes $\lambda$ en radianes y radio terrestre aproximado $R=6.371$ km:
+\[
+a=\sin^2\frac{\Delta\varphi}{2}
++\cos\varphi_1\cos\varphi_2\sin^2\frac{\Delta\lambda}{2},
+\qquad
+d=2R\operatorname{atan2}(\sqrt a,\sqrt{1-a}).
+\]
+Representa distancia geográfica sobre la esfera. No considera carreteras, ríos, pendientes ni puentes.
+
+\subsection{OSRM: estimación vial externa}
+La app consulta una matriz de distancias al servidor público de demostración \url{https://router.project-osrm.org}. Convierte metros a kilómetros y descarta conexiones ausentes o ajustes de los puntos a más de 1 km de la red vial.
+
+El prototipo limita esta prueba a 100 puntos totales entre bases y destinos y controla la frecuencia de consulta. Necesita internet y envía coordenadas al proveedor. Si falla no sustituye silenciosamente el método: el usuario debe elegir explícitamente Haversine.
+
+Ambos métodos se usan para distancia \textbf{de ida}. OSRM no garantiza transitabilidad actual ni construye en esta app un itinerario con paradas, horarios y retorno.
+
+\section{Diferencias entre las tres versiones de planificación}
+\begin{longtable}{@{}p{0.21\textwidth}p{0.70\textwidth}@{}}
+\toprule
+\textbf{Versión} & \textbf{Comportamiento real}\\
+\midrule
+\endhead
+Script de fase 2 & Base fija en Valledupar; 4 brigadas, máximo 350 km y al menos 2 destinos con resguardos por defecto. Si el solver falla, reintenta sin el mínimo de resguardos. No filtra explícitamente hubs al formar candidatos.\\
+API anterior \campo{/plans} & Una base, Haversine; excluye hubs y permite mínimo de destinos con resguardos. Si es inviable devuelve error; no relaja silenciosamente esa restricción.\\
+Jornadas multibase & Bases y capacidades declaradas; Haversine u OSRM; propuesta, revisión manual y guardado. Considera también hubs, no impone cuota mínima de resguardos ni exige probabilidad alta.\\
+\bottomrule
+\end{longtable}
+Es importante no presentar como universal la exclusión de hubs: se aplica al entrenamiento y al plan anterior, pero \textbf{no al planificador multibase actual}. La inclusión de hubs en inferencia también exige cautela porque fueron excluidos del entrenamiento.
+
+\section{Ejemplo histórico guardado}
+El CSV de fase 2 contiene la siguiente solución:
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Municipio} & \textbf{Probabilidad heredada} & \textbf{Distancia km}\\
+\midrule
+Pueblo Bello & 0,3694 & 36,06\\
+Becerril & 0,4576 & 84,10\\
+Astrea & 0,9092 & 132,70\\
+Chimichagua & 0,7496 & 146,76\\
+\bottomrule
+\end{tabular}
+\end{center}
+Pueblo Bello aparece aunque su etiqueta histórica de 2021 es 0 y su probabilidad es menor a 0,5. Esto ilustra que etiqueta, estimación y asignación son distintos. Además de la distancia, el ejemplo histórico exige dos destinos con resguardos.
+
+Este es un resultado guardado, no una garantía de que una nueva jornada multibase, otro modelo publicado u OSRM produzcan los mismos destinos.
+
+\evidencia{\ruta{fase 1 api/fase 2/src/optimizacion_milp.py}; \ruta{fase 1 api/fase 2/reportes/asignacion_brigadas_optima.csv}; funciones \campo{calculate_journey}, \campo{journey_distances} y \campo{create_plan} en fase 3.}
+
+\chapter{Arquitectura y funcionamiento de la aplicación}
+\section{Componentes principales}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Componente} & \textbf{Responsabilidad}\\
+\midrule
+React + TypeScript & Formularios, navegación, tablas, mapas, laboratorio y revisión de propuestas.\\
+Vite & Servidor de desarrollo y compilación del frontend; redirige \campo{/api} al backend local.\\
+FastAPI + Uvicorn & API HTTP, permisos, validación, carga de modelos, experimentos y optimización.\\
+SQLite & Usuarios, sesiones, registros, versiones, experimentos, bases, borradores y planes.\\
+Archivos locales & CSV de datasets, artefactos joblib y geometrías.\\
+MapLibre + OpenFreeMap & Presentación del mapa base y marcadores; el mapa base requiere internet.\\
+Shapely, pyproj, pyshp & Lectura de geometrías originales, validación punto--polígono y distancias a límites.\\
+scikit-learn / SciPy & Clasificación, preprocesamiento, métricas y optimización.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Buena parte de la lógica actual reside en \campo{backend/app/main.py}, con módulos específicos para datos y geografía. La existencia de carpetas por capas no implica que todo el código ya esté separado estrictamente en esa arquitectura.
+
+\section{Recorrido de una solicitud}
+\begin{enumerate}
+\item El usuario elige una acción en React.
+\item El frontend envía una solicitud a \campo{/api/v1/...} con la cookie de sesión.
+\item Vite, en desarrollo, redirige \campo{/api} a \campo{127.0.0.1:8000}.
+\item FastAPI verifica sesión, rol y datos.
+\item Consulta SQLite, carga el dataset o modelo local y ejecuta el cálculo pertinente.
+\item Devuelve JSON o un archivo de plantilla; React actualiza tablas, indicadores o mapas.
+\end{enumerate}
+La IA no se entrena cada vez que se abre un municipio: la inferencia carga un artefacto existente. La optimización se ejecuta cuando se calcula una propuesta.
+
+\section{Roles y autenticación}
+\begin{description}
+\item[Operador:] consulta territorio y modelo, registra bases y planifica brigadas.
+\item[Administrador IA:] además gestiona datos, crea versiones, entrena, evalúa, publica y crea usuarios.
+\end{description}
+No hay registro público. El primer administrador se crea con un script interactivo. Las contraseñas se derivan con PBKDF2-HMAC-SHA256, sal aleatoria y 600.000 iteraciones; las sesiones tienen token cuyo hash se guarda en SQLite y duración de 12 horas. La cookie es HttpOnly y SameSite estricto.
+
+Se restringen orígenes de escritura al frontend local previsto. Esto no convierte el prototipo en un despliegue de producción seguro: se debe mantener local y revisar seguridad, HTTPS, operación y respaldo antes de exponerlo.
+
+\section{Vista territorial y consultar modelo}
+Vista territorial permite elegir departamento, año y fuente histórica u operativa; lista municipios ordenados por probabilidad y permite selección mediante mapa o tabla. Muestra población, ruralidad, NBI rural y resguardos, además del modelo usado.
+
+Consultar modelo permite cargar una plantilla municipal o introducir características. La ruta de predicción manual exige población válida y al menos 20 variables disponibles; no fabrica una etiqueta para poder consultar. Las faltantes restantes se procesan según el artefacto activo.
+
+\section{Datos históricos frente a operativos}
+\textbf{Histórico} significa el dataset inicial o el conjunto asociado al modelo publicado. \textbf{Operativo declarado} significa registros capturados mediante la aplicación, con fuente y fecha informadas.
+
+La consulta operativa y sus candidatos requieren los \textbf{27 predictores completos}. Los incompletos pueden conservarse para completar después, pero no reciben esa inferencia. No se mezclan automáticamente con el histórico.
+
+La regla de al menos 20 variables en entrenamiento y predicción manual \textbf{no debe confundirse} con la regla de 27 para inferencia operativa y selección de nuevos operativos para entrenar.
+
+\section{Gestión de datos}
+El flujo actual de captura es:
+\begin{enumerate}
+\item Descargar plantilla CSV/Excel o abrir el formulario individual.
+\item Ingresar municipio, año, fuente, fecha y predictores.
+\item Subir o previsualizar: se comprueban catálogo DIVIPOLA, tipos, porcentajes, conteos, coordenadas, duplicados y coherencia de sedes.
+\item Revisar errores y advertencias; una vista previa por sí sola no guarda registros operativos.
+\item Confirmar: se guardan las filas válidas y se informan rechazos.
+\item Consultar registros, corregir con vista previa y conservar historial.
+\end{enumerate}
+La importación actual admite hasta 2.000 filas y 2.000.000 bytes por archivo. No admite fórmulas en las celdas ni sobrescritura silenciosa de registros históricos con el mismo municipio y año. La unicidad operativa también impide dos filas del mismo municipio--año.
+
+Una prueba exploratoria individual sobre un operativo completo conserva entrada y huella del modelo. \textbf{Importar o corregir no reentrena ni publica automáticamente.}
+
+\section{Versiones de datos y publicación}
+El administrador puede crear una instantánea del histórico, registros adicionales anteriores y operativos seleccionados expresamente. Para estos últimos indica etiqueta 0/1 y origen. Se exige que el municipio tenga clasificación histórica inequívoca de no hub; no se deduce un hub nuevo a partir de los 27 predictores.
+
+La versión guarda archivo y SHA-256; el backend verifica ese checksum antes de cargarla. También conserva la huella y valores de operativos seleccionados. La procedencia de una etiqueta declarada no se verifica con una autoridad externa.
+
+El laboratorio muestra candidatos y métricas de validación, permite evaluar en prueba y después publicar. La publicación cambia una referencia al experimento activo; no modifica los archivos originales de fase 2 ni reescribe planes ya guardados.
+
+\section{Geografía y registro de bases}
+Una base requiere municipio del catálogo, coordenadas confirmadas y fuente. NIT, dirección, teléfono y contacto son opcionales.
+
+El backend valida la ubicación usando \textbf{geometrías originales MGN 2025}, no contornos simplificados del mapa:
+\begin{enumerate}
+\item Verifica integridad de los ZIP mediante hashes del informe de auditoría.
+\item Comprueba que el punto esté cubierto por departamento y municipio.
+\item Calcula distancia al límite en una proyección local.
+\item Si está a 100 metros o menos de un límite, bloquea el nuevo registro para revisión.
+\end{enumerate}
+Las geometrías simplificadas se usan solo para mostrar contornos. Las bases antiguas sin estado se muestran pendientes; la selección de jornadas no las bloquea automáticamente por ese estado. El operador debe revisarlas.
+
+\advertencia{En la revisión se encontró el informe \campo{audit.json}, pero no los dos ZIP originales mediante la búsqueda de archivos. Si no están presentes y coinciden con sus hashes, no podrá registrarse una nueva base validada ni darse por disponible la geometría. Deben obtenerse de fuente autorizada y respetar las condiciones del DANE.}
+
+\section{Borradores, revisión manual y planes guardados}
+El asistente actual calcula una propuesta como borrador. Permite quitar y añadir asignaciones antes de guardar, manteniendo capacidad por base, municipio no repetido y distancia máxima.
+
+La revisión manual puede modificar la solución óptima: después no debe afirmarse que el conjunto editado es el óptimo del solver. Se identifica como revisado. Al guardarse, se conserva una instantánea de candidatos, entradas, distancias, parámetros, autor y referencia de modelo; en el flujo operativo también se incluye su SHA-256.
+
+Los planes guardados no se recalculan al corregir datos. El administrador puede ver los planes de todos; el operador, los propios. El listado devuelve hasta 30 planes recientes.
+
+\evidencia{Interfaz en \ruta{fase 1 api/fase 3/frontend/src/main.tsx}. Módulos: \campo{DataManagement.tsx}, \campo{Laboratory.tsx}, \campo{Prediction.tsx}, \campo{Bases.tsx} y \campo{Journeys.tsx}. Proxy: \ruta{fase 1 api/fase 3/frontend/vite.config.ts}. Backend: \campo{main.py}, \campo{data_management.py} y \campo{geography.py}.}
+
+\chapter{Flujo de uso en un escenario realista}
+\section{Escenario}
+Una secretaría de salud quiere preparar una jornada en Cesar para una fecha futura. Dos instituciones han confirmado fuera del sistema personal y vehículos: una base A con dos brigadas y una base B con una. Es un \textbf{escenario ilustrativo}, no una operación sanitaria observada.
+
+\section{Preparación del administrador}
+\begin{enumerate}
+\item Inicia sesión con su cuenta.
+\item Revisa el modelo activo y su origen: heredado o experimento publicado.
+\item Si dispone de datos nuevos comparables, los carga en Gestión de datos, revisa errores y confirma.
+\item Si quiere actualizar el modelo, selecciona operativos completos y etiquetas sustentadas, crea versión y entrena.
+\item Revisa validación, evalúa prueba y publica solo tras revisión técnica. Si no publica, la aplicación continúa con el modelo activo anterior.
+\item Crea una cuenta operativa si la persona planificadora no la tiene.
+\end{enumerate}
+No es obligatorio reentrenar para cada jornada. La actualización del modelo debe ser un proceso técnico separado, no una reacción automática a un dato recién ingresado.
+
+\section{Recorrido del operador, pantalla a pantalla}
+\begin{enumerate}
+\item \textbf{Ingresar:} autenticar cuenta operativa.
+\item \textbf{Vista territorial:} seleccionar Cesar y revisar fuente, año, modelo y puntuaciones. Recordar que el histórico inicial termina en 2021.
+\item \textbf{Bases operativas:} registrar o verificar A y B, sus coordenadas, validación geográfica y disponibilidad real. La disponibilidad sanitaria no la certifica la app.
+\item \textbf{Planificar brigadas, paso 1:} elegir fecha, Cesar y fuente histórica u operativa. Seleccionar A con 2 brigadas y B con 1.
+\item \textbf{Consultar prioridades:} si se eligió histórico, el asistente toma el último año disponible del conjunto asociado al modelo; si operativo, se informa el año.
+\item \textbf{Paso 2:} revisar candidatos, mapas y municipios sin predicción. Elegir distancia máxima, por ejemplo 150 km, y método.
+\item \textbf{Calcular propuesta:} el backend puntúa pares factibles y resuelve el MILP. Comprueba si datos o modelo cambiaron desde la consulta mediante la huella de candidatos.
+\item \textbf{Paso 3:} revisar base de salida, destino, probabilidad, distancia, recursos sin asignar y exclusiones.
+\item \textbf{Validar fuera de la app:} verificar seguridad, vías, consentimiento comunitario, personal, insumos, sitio de atención y coordinación local.
+\item \textbf{Ajustar si corresponde:} retirar una asignación no viable o añadir otra dentro de las restricciones. Esto deja constancia de revisión manual, no de la razón clínica o comunitaria completa.
+\item \textbf{Guardar plan revisado:} conservar la instantánea para consultar después.
+\item \textbf{Ejecutar la jornada:} es una acción del equipo de salud, no un despacho automático del software.
+\end{enumerate}
+
+\section{Qué recibe la persona planificadora}
+La salida es una lista \textbf{base $\rightarrow$ municipio}, con distancia, puntuación probabilística e información de contexto; también aparecen recursos no asignados y motivos de exclusión o no selección.
+
+No recibe una lista de pacientes, una ruta definitiva GPS, una orden clínica ni una garantía de que cada destino pueda atenderse con una sola brigada.
+
+\section{Qué pasa si algo falla}
+\begin{description}
+\item[Sin datos completos:] se informa ausencia de predicción o se excluye la fila del flujo operativo. Debe completarse y verificarse.
+\item[Datos o modelo cambiaron:] se solicita volver a consultar prioridades antes de calcular.
+\item[Sin base cercana:] el municipio queda sin asignar; se revisan recursos o máximo permitido, sin forzar accesibilidad.
+\item[OSRM no disponible:] se reintenta o se cambia explícitamente a Haversine, reconociendo su limitación.
+\item[Geometrías ausentes:] no se certifica registro geográfico; se restauran las fuentes autorizadas y su auditoría.
+\item[Sin asignaciones convenientes:] puede quedar una propuesta vacía. No significa que no existan necesidades de salud.
+\end{description}
+
+\section{Después de la jornada}
+Un uso sanitario maduro necesitaría registrar atención real, resultados, incidentes y costos para contrastar el plan. Ese circuito no está implementado de forma integral. Los registros operativos del prototipo no equivalen a una historia clínica ni a un sistema completo de seguimiento de brigadas.
+
+\chapter{Instalación y ejecución local con Pipenv}
+\section{Entorno observado y precauciones}
+La instalación del usuario cuenta con Pipenv 2025.0.4. El \campo{Pipfile} actual, dentro de fase 3, declara Python 3.14. El README histórico declara Python 3.11.9 para los artefactos de fase 2; las dos referencias no son equivalentes.
+
+El backend depende de FastAPI, Uvicorn, pandas, scikit-learn, SciPy, joblib y utilidades geográficas. El frontend requiere Node.js y npm. No se verificó aquí compatibilidad de todos los artefactos heredados con el entorno instalado.
+
+\advertencia{Los archivos joblib pueden depender de la versión de scikit-learn y del entorno con que se serializaron. Un Pipfile.lock reproducible no garantiza compatibilidad con un modelo entrenado en otro entorno. Si falla la carga, revisar la procedencia y recrear un entorno compatible o reentrenar de forma trazable, sin sobrescribir los originales.}
+
+\section{Primera preparación}
+Desde PowerShell en la raíz del repositorio:
+\begin{lstlisting}
+cd "fase 1 api\fase 3"
+python -m pipenv --version
+python -m pipenv sync
+\end{lstlisting}
+Se usa \campo{sync} porque ya existen \campo{Pipfile} y \campo{Pipfile.lock}; instala lo fijado sin actualizar el lock. Si se prepara otra copia sin esos archivos, puede inicializarse conscientemente con:
+\begin{lstlisting}
+python -m pip install pipenv
+python -m pipenv install -r backend\requirements.txt
+\end{lstlisting}
+No hace falta activar una carpeta \campo{.venv} al ejecutar con \campo{pipenv run}. Tampoco se deben mezclar sin necesidad instalaciones del Python global con las de Pipenv.
+
+Para crear el primer administrador, solo una vez:
+\begin{lstlisting}
+python -m pipenv run python scripts\crear_admin.py
+\end{lstlisting}
+El script pide usuario de al menos tres caracteres y contraseña de al menos diez. No imprime la contraseña mientras se escribe y no crea credenciales predeterminadas.
+
+\section{Terminal 1: backend}
+Desde fase 3:
+\begin{lstlisting}
+python -m pipenv run python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+\end{lstlisting}
+\campo{--app-dir backend} hace que Python encuentre \campo{app} sin tener que cambiar de carpeta. Ejecutar \campo{app.main:app} desde fase 3 sin indicar esa carpeta puede producir \campo{ModuleNotFoundError: No module named 'app'}.
+
+Verificar en el navegador:
+\begin{itemize}
+\item API: \url{http://127.0.0.1:8000/docs}.
+\item Salud: \url{http://127.0.0.1:8000/api/v1/health}.
+\end{itemize}
+
+\section{Terminal 2: frontend}
+Desde la raíz del repositorio:
+\begin{lstlisting}
+cd "fase 1 api\fase 3\frontend"
+npm install
+npm run dev
+\end{lstlisting}
+Abrir normalmente \url{http://localhost:5173} y mantener ambas terminales abiertas. Si Vite usa otro puerto, revisar antes la configuración de orígenes permitidos del backend; no basta con asumir que cualquier puerto estará autorizado.
+
+\section{Pruebas y persistencia}
+Desde fase 3, para usar el mismo entorno:
+\begin{lstlisting}
+cd backend
+python -m pipenv run python -m pytest tests -q
+\end{lstlisting}
+Hay pruebas de acceso y permisos, captura y corrección de datos, versiones, predicción exploratoria, jornadas y validación geográfica. Su existencia no implica que hayan pasado en este entorno: no se ejecutaron como parte de esta documentación.
+
+La persistencia local está en \campo{fase 3/storage/}: base SQLite, versiones y modelos, entre otros archivos. Puede cambiarse con \campo{BRIGADAS_STORAGE}. Respaldar esa carpeta de forma consistente antes de migraciones o experimentos importantes; contiene información de usuarios y datos operativos.
+
+Los originales MGN esperados son \campo{MGN2025_DPTO_POLITICO.zip} y \campo{MGN2025_MPIO_GRAFICO.zip} en \campo{data/geography/mgn_2025/originals/}, dentro de fase 3. Si se dispone legalmente de ellos, desde backend se regenera la auditoría con:
+\begin{lstlisting}
+python -m pipenv run python -m app.mgn_import
+\end{lstlisting}
+No redistribuir los originales o derivados sin aclarar las condiciones aplicables del DANE.
+
+\chapter{Guion sugerido para la exposición}
+\section{Distribución orientativa: 18 a 22 minutos}
+\begin{longtable}{@{}p{0.14\textwidth}p{0.24\textwidth}p{0.53\textwidth}@{}}
+\toprule
+\textbf{Tiempo} & \textbf{Bloque} & \textbf{Idea que debe quedar clara}\\
+\midrule
+\endhead
+0--2 min & Problema y propuesta & La cobertura extramural requiere priorizar territorios con recursos limitados.\\
+2--5 min & Datos y entradas & Panel histórico, seis familias de fuentes, 27 predictores y una etiqueta por fila.\\
+5--9 min & Target & Dos mediciones de origen, comparación por pares, brecha, hubs y cuantil dos tercios.\\
+9--12 min & Algoritmos y métricas & Cuatro métodos históricos; dos candidatos entrenables en app; resultados y límites.\\
+12--15 min & Optimización & Base no es destino de atención; capacidades, distancia y función objetivo provisional.\\
+15--19 min & Demostración & Territorio, bases, jornada, candidatos, revisión y guardado.\\
+19--22 min & Limitaciones y cierre & No diagnóstico, no pronóstico temporal validado, revisión humana y mejoras.\\
+\bottomrule
+\end{longtable}
+
+\section{Discurso base}
+\subsection*{Apertura}
+``Nuestro proyecto, Territorio Salud, es un sistema de apoyo para planificar brigadas de salud extramurales. Parte del problema de orientar recursos limitados hacia territorios rurales y vulnerables. Integra datos oficiales, un modelo de clasificación y un optimizador de asignación. No reemplaza al equipo de salud: le permite revisar evidencia y comparar una propuesta logística.''
+
+\subsection*{Datos y variables}
+``La unidad de análisis es municipio por año. El dataset inicial tiene 5.610 filas, 74 columnas y cinco años entre 2017 y 2021. De esas columnas usamos 27 predictoras: cinco demográficas y geográficas, once NBI, tres de infraestructura, tres de contexto étnico y cinco de perfil diagnóstico. El código municipal identifica el registro, pero no es una de las 27 entradas.''
+
+\subsection*{Etiqueta}
+``La variable etiquetada es prioridad alta. No significa que un experto haya diagnosticado cada municipio: se construye con una regla histórica. Usamos consultas y población, calculamos una tasa y comparamos con la mediana de municipios de la misma banda poblacional en el mismo año. Limitamos valores extremos al percentil 99 y calculamos una brecha relativa. Excluimos hubs de la construcción de la clase alta y tomamos como positivos las brechas del tercio superior de las filas válidas. En este dataset el umbral es aproximadamente 0,3367.''
+
+\subsection*{Precisión sobre el target}
+``Por tanto, el target no se construye sumando pobreza, resguardos y número de sedes. Esas características ayudan a aprender asociaciones con la etiqueta. También reconocemos que la ausencia de RIPS puede convertirse en cero consultas: es una limitación que debemos corregir para no confundir falta de reporte con falta de atención.''
+
+\subsection*{Aprendizaje}
+``En fase 2 comparamos un baseline, regresión logística, Random Forest y HistGradientBoosting. El boosting tiene el mayor F1 del reporte histórico, 0,6234, con accuracy 0,7797 y recall 0,5379. No decimos que sea perfecto: detecta solo una parte de las etiquetas altas y las métricas tienen limitaciones de contaminación. En la aplicación el laboratorio reentrena boosting y baseline, imputa dentro del pipeline y selecciona en validación.''
+
+\subsection*{Planificación}
+``La probabilidad no decide por sí sola dónde enviar una brigada. La combinamos con una aproximación a población vulnerable y una penalización por distancia. El MILP respeta la capacidad declarada de cada base y como máximo una asignación por municipio. Puede dejar brigadas sin asignar. El hospital es la base de salida; el destino recomendado es un municipio, no un paciente ni un punto de atención ya confirmado.''
+
+\subsection*{Uso de la app}
+``Un administrador gestiona datos y, si corresponde, etiqueta, entrena, evalúa y publica. Un operador consulta el territorio, verifica bases, declara recursos para una fecha, revisa candidatos, elige distancia y calcula. Luego comprueba la propuesta y puede ajustarla antes de guardarla. La ejecución real requiere coordinación con las comunidades y revisión de acceso, personal e insumos fuera del sistema.''
+
+\subsection*{Cierre}
+``El valor del proyecto es unir trazabilidad de datos, priorización y restricciones logísticas en una interfaz. Su estado actual es un prototipo local. Los próximos pasos son mejorar la construcción de etiquetas, evaluar temporalmente, calibrar probabilidades e incorporar restricciones y resultados reales de campo.''
+
+\section{Demostración recomendada}
+\begin{enumerate}
+\item Iniciar backend y frontend antes de exponer; comprobar inicio de sesión.
+\item Abrir Cesar con el histórico y señalar año y modelo activo.
+\item Mostrar un municipio y explicar sus 27 entradas sin leer toda la tabla.
+\item Mostrar la diferencia entre probabilidad alta y estado hub.
+\item Abrir bases previamente verificadas. Si faltan geometrías originales, no improvisar una base falsa para evitar la validación.
+\item Crear una jornada de ejemplo, elegir recursos y consultar candidatos.
+\item Usar Haversine para una demo local reproducible y explicar sus límites; presentar OSRM solo si hay conexión y se aceptan sus condiciones.
+\item Calcular, revisar asignaciones y recursos libres y guardar solo si se desea conservar ese ejemplo.
+\item Mostrar el laboratorio sin iniciar un entrenamiento largo durante la exposición, salvo que esté planificado.
+\end{enumerate}
+
+\section{Preguntas frecuentes del docente}
+\begin{description}
+\item[¿Por qué es IA y no solo una regla?] La etiqueta inicial es una regla, pero el clasificador aprende de ejemplos una relación entre 27 características y esa etiqueta. El optimizador es otro componente matemático. La IA aproxima el criterio histórico, no descubre automáticamente una verdad clínica.
+\item[¿Por qué no ordenar directamente por brecha?] Si consultas y población están disponibles, es una comparación válida y necesaria. El modelo busca una señal a partir del contexto sin usar directamente la brecha; debe justificar su valor añadido y validarse fuera del histórico.
+\item[¿Es clasificación o regresión?] Clasificación binaria con salida probabilística. No se entrenó una regresión de la brecha ni de casos futuros.
+\item[¿Cuántas entradas y salidas hay?] 27 entradas; una etiqueta de entrenamiento. En inferencia hay probabilidad y clase derivada. En logística hay decisiones base--municipio.
+\item[¿Cuáles son las variables etiquetadas?] Se etiqueta cada observación mediante \campo{prioridad_alta}; no se etiquetan las 27 columnas por separado.
+\item[¿Cuántas variables construyen el target?] Dos mediciones numéricas: consultas y población, con municipio y año como contexto y bandas, benchmark, brecha y hub como intermedias.
+\item[¿NBI determina directamente la etiqueta?] No. Es parte de X; puede ayudar a predecir, pero no aparece en la fórmula del target histórico.
+\item[¿El target fue rotulado por médicos?] No el histórico: es una etiqueta derivada. Las etiquetas operativas se declaran después con origen, sin verificación externa automática.
+\item[¿Qué significa prioridad regular?] Probabilidad bajo el umbral de referencia, no ausencia demostrada de necesidades.
+\item[¿El hospital más cercano siempre gana?] No: el optimizador considera el conjunto de destinos y capacidades. No clasifica idoneidad clínica de hospitales.
+\item[¿Solo participan municipios con probabilidad mayor al 50\,\%?] No en la jornada multibase. Participan candidatos suficientes y válidos; la probabilidad entra al puntaje.
+\item[¿Se excluyen siempre los hubs?] No. Se excluyen del entrenamiento y del plan anterior de una base, pero pueden participar en la jornada multibase actual.
+\item[¿Por qué puede seleccionarse Pueblo Bello con etiqueta 0?] Porque la etiqueta, la probabilidad y la decisión logística son objetos distintos. El ejemplo histórico combina vulnerabilidad, distancia y cuota de destinos con resguardos.
+\item[¿El mapa muestra rutas?] No. Muestra puntos y contornos. OSRM aporta distancias de red estimadas, no un plan completo de viaje representado y verificado.
+\item[¿Entrenar cambia inmediatamente el modelo?] No. Se evalúa y se publica explícitamente. Importar datos tampoco lo cambia.
+\item[¿El 70/15/15 elimina toda fuga?] No. Agrupar por municipio evita compartir territorios, pero el target global previo, la imputación histórica y el CV por filas introducen otras dependencias.
+\item[¿Podemos afirmar que predice 2026?] No como capacidad validada. La app acepta operativos actuales, pero su uso es exploratorio y no se ha demostrado generalización temporal.
+\item[¿Qué se considera éxito del prototipo?] Integrar el flujo con entradas validadas y trazabilidad. El éxito sanitario requiere contrastar después cobertura, equidad, costo y resultados reales.
+\end{description}
+
+\chapter{Limitaciones, mejoras y conclusiones}
+\section{Estado y límites principales}
+\begin{enumerate}
+\item Prototipo local, no listo para exposición pública ni uso clínico autónomo.
+\item Target derivado de utilización reportada; no es necesidad médica medida directamente.
+\item Riesgo de confundir ausencia RIPS con atención cero.
+\item Etiquetas y referencias calculadas antes de la partición.
+\item Resultados de fase 2 con imputación global y CV interno por filas.
+\item Probabilidades sin calibración demostrada y sesgos territoriales por revisar.
+\item Características con años y granularidades heterogéneos.
+\item Hubs excluidos de entrenamiento, pero permitidos en jornadas multibase.
+\item Función objetivo provisional y potencial superposición de poblaciones vulnerables.
+\item Distancias de ida, sin secuencia de visitas, retorno ni tiempos de servicio.
+\item Disponibilidad y habilitación de bases declaradas, no certificadas automáticamente.
+\item Dependencia de geometrías originales y de internet para mapa base u OSRM.
+\end{enumerate}
+
+\section{Mejoras priorizadas}
+\begin{description}
+\item[Primero, datos y etiqueta:] distinguir ceros de faltantes; documentar cobertura; revisar reglas con expertos y construir evaluación independiente.
+\item[Segundo, evaluación:] reconstruir bandas, referencias e imputación sin contaminación; usar grupos en cualquier CV nuevo; añadir validación temporal y por territorio.
+\item[Tercero, probabilidades:] revisar calibración y costos de falsos negativos; justificar un umbral operativo antes de usar prueba.
+\item[Cuarto, logística:] validar pesos, evitar doble conteo de personas e incorporar horas, retornos, costos, especialidades, rutas y condiciones reales.
+\item[Quinto, operación:] respaldos, auditoría de decisiones, gestión de trabajos robusta y seguimiento de resultados de las jornadas.
+\end{description}
+Estas son mejoras propuestas, no funcionalidades ya entregadas por este documento.
+
+\section{Conclusión}
+Territorio Salud integra un pipeline de datos oficiales, un clasificador supervisado y un optimizador territorial en una app local. Su explicación rigurosa exige separar \textbf{necesidad real}, \textbf{etiqueta histórica}, \textbf{probabilidad estimada} y \textbf{asignación propuesta}. La herramienta puede apoyar la revisión de opciones, pero necesita validación metodológica y sanitaria antes de respaldar decisiones asistenciales reales.
+
+\appendix
+\chapter{Mapa de evidencia del repositorio}
+\small
+\begin{longtable}{@{}p{0.27\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{Tema} & \textbf{Archivo o función}\\
+\midrule
+\endhead
+Fuentes y años & \ruta{fase 1 api/config/fuentes.json}.\\
+ETL y target & \ruta{fase 1 api/fase 1/src/build_tabla_modelo.py}; \campo{_brecha_par} y \campo{_asignar_split_estratificado}.\\
+Perfil diagnóstico & \ruta{fase 1 api/fase 1/src/etl_02_rips_diagnostico.py}.\\
+Dataset comprobado & \ruta{fase 1 api/data/modelo/municipio_anio.csv}.\\
+Variables y cuatro modelos & \ruta{fase 1 api/fase 2/src/modelado.py}.\\
+Resultados guardados & \ruta{fase 1 api/fase 2/reportes/metricas_comparacion.json}.\\
+Hiperparámetros históricos & \ruta{fase 1 api/logs/modelado_fase2.log}.\\
+Plan histórico & \ruta{fase 1 api/fase 2/src/optimizacion_milp.py}; \ruta{fase 1 api/fase 2/reportes/asignacion_brigadas_optima.csv}.\\
+Auth y persistencia & \ruta{fase 1 api/fase 3/backend/app/main.py}: \campo{initialize}, \campo{login}, \campo{current_user}, \campo{admin}.\\
+Entrenamiento actual & Mismo archivo: \campo{create_version}, \campo{train_experiment}, \campo{evaluate_test}, \campo{publish_model}.\\
+Inferencia actual & Mismo archivo: \campo{predict_active}, \campo{priorities}, \campo{operational_priorities}, \campo{manual_prediction}.\\
+Planificación actual & Mismo archivo: \campo{journey_candidates}, \campo{journey_distances}, \campo{calculate_journey} y rutas de borradores.\\
+Captura y corrección & \ruta{fase 1 api/fase 3/backend/app/data_management.py}.\\
+Diccionario de entradas & \ruta{fase 1 api/fase 3/backend/app/data_dictionary.py}.\\
+Validación geográfica & \ruta{fase 1 api/fase 3/backend/app/geography.py}; \campo{source_verified} y \campo{validate}.\\
+Interfaz real & \ruta{fase 1 api/fase 3/frontend/src/main.tsx}; \campo{Journeys.tsx}, \campo{Laboratory.tsx} y demás módulos de pantalla.\\
+Dependencias actuales & \ruta{fase 1 api/fase 3/Pipfile}; \campo{Pipfile.lock}; \campo{backend/requirements.txt}; \campo{frontend/package.json}.\\
+Pruebas disponibles & \ruta{fase 1 api/fase 3/backend/tests/test_app.py}, \campo{test_geography.py}, \campo{test_audit_geography.py}.\\
+\bottomrule
+\end{longtable}
+\normalsize
+Algunos documentos de planificación y apartados de limitaciones del README están desactualizados frente al código: por ejemplo, ya existe vista previa de importación y revisión de propuestas. Ante una contradicción, esta guía describe las rutas y pantallas inspeccionadas y señala las diferencias entre versiones.
+
+\chapter{Glosario y fuentes externas}
+\begin{description}
+\item[Brigada extramural:] equipo que desplaza servicios de salud fuera de una sede fija.
+\item[DIVIPOLA:] codificación de la división político-administrativa de Colombia.
+\item[RIPS:] Registros Individuales de Prestación de Servicios de Salud; aquí se usan agregados.
+\item[REPS:] Registro Especial de Prestadores de Servicios de Salud.
+\item[ESE:] Empresa Social del Estado.
+\item[NBI:] Necesidades Básicas Insatisfechas.
+\item[CIE-10:] clasificación de enfermedades; el ETL de este proyecto agrupa por letra inicial del código.
+\item[ETL:] extracción, transformación y carga de datos.
+\item[Target:] variable objetivo o etiqueta de aprendizaje.
+\item[Feature:] característica de entrada del modelo.
+\item[Hub:] municipio con tasa de consultas al menos tres veces el benchmark de sus pares según la regla.
+\item[Pipeline:] secuencia persistida de preprocesamiento y estimador.
+\item[MILP:] programación lineal entera mixta.
+\item[Checksum o huella:] resumen criptográfico para comprobar integridad de un archivo o contenido.
+\item[Calibración:] correspondencia entre probabilidades predichas y frecuencias observadas.
+\end{description}
+
+\textbf{Referencias de procedencia:}
+\begin{itemize}
+\item Datos Abiertos Colombia: \url{https://www.datos.gov.co/}.
+\item DANE, población, NBI y MGN: \url{https://www.dane.gov.co/}.
+\item Portal institucional de MinSalud: \url{https://www.minsalud.gov.co/}.
+\item scikit-learn: \url{https://scikit-learn.org/stable/}.
+\item SciPy, optimización: \url{https://docs.scipy.org/doc/scipy/reference/optimize.html}.
+\item OSRM: \url{https://project-osrm.org/}.
+\item MapLibre: \url{https://maplibre.org/}.
+\item OpenFreeMap: \url{https://openfreemap.org/}.
+\end{itemize}
+Estas referencias identifican fuentes e implementaciones; los comportamientos específicos descritos se verificaron en los archivos del repositorio, no mediante una certificación externa de la solución.
+
+\section*{Recompilar este documento}
+Desde la raíz, con una distribución LaTeX instalada:
+\begin{lstlisting}
+pdflatex -interaction=nonstopmode -halt-on-error guion_proyecto.tex
+pdflatex -interaction=nonstopmode -halt-on-error guion_proyecto.tex
+\end{lstlisting}
+Las dos pasadas resuelven el índice y las referencias. El PDF resultante es \campo{guion_proyecto.pdf}.
+\end{document}
