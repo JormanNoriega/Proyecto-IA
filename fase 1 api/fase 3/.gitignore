@@ -1,0 +1,30 @@
+# Entornos y configuración privada
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Almacenamiento local: conservar solo estructura
+storage/**
+!storage/**/
+!storage/**/.gitkeep
+
+# Archivos locales
+*.log
+.DS_Store
+Thumbs.db
