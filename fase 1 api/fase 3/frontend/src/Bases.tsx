@@ -53,6 +53,7 @@ export default function Bases({request, json}:{request:(path:string, options?:Re
   const [busy,setBusy]=useState(false);
   const [validation,setValidation]=useState<{status:string;message:string}|null>(null);
   const [validating,setValidating]=useState(false);
+  const [validationAttempt,setValidationAttempt]=useState(0);
   const visibleBases=bases.filter(b=>b.municipality_code===form.municipality_code);
   const reload=()=>request("/bases").then(setBases);
   useEffect(()=>{request("/territories").then(data=>setDepartments(data.departments)).catch(e=>setError(e.message));reload().catch(e=>setError(e.message))},[]);
@@ -65,6 +66,7 @@ export default function Bases({request, json}:{request:(path:string, options?:Re
   },[department]);
   useEffect(()=>{
     let active=true;
+    const controller=new AbortController();
     setValidation(null);
     setValidating(false);
     if(!form.municipality_code||!form.latitude.trim()||!form.longitude.trim())return;
@@ -74,10 +76,10 @@ export default function Bases({request, json}:{request:(path:string, options?:Re
       return;
     }
     setValidating(true);
-    const timer=window.setTimeout(()=>request("/geography/validate",json({municipality_code:form.municipality_code,latitude:lat,longitude:lon}))
-      .then(result=>{if(active)setValidation(result)}).catch(()=>{if(active)setValidation({status:"ERROR",message:"No se pudo comprobar la ubicación. Inténtalo de nuevo."})}).finally(()=>{if(active)setValidating(false)}),400);
-    return ()=>{active=false;window.clearTimeout(timer)};
-  },[form.municipality_code,form.latitude,form.longitude]);
+    const timer=window.setTimeout(()=>request("/geography/validate",{...json({municipality_code:form.municipality_code,latitude:lat,longitude:lon}),signal:controller.signal})
+      .then(result=>{if(active)setValidation(result)}).catch((error:unknown)=>{if(active)setValidation({status:"ERROR",message:`No se pudo comprobar la ubicación: ${error instanceof Error ? error.message : "error de conexión"}.`})}).finally(()=>{if(active)setValidating(false)}),400);
+    return ()=>{active=false;window.clearTimeout(timer);controller.abort()};
+  },[form.municipality_code,form.latitude,form.longitude,validationAttempt]);
   async function save(e:React.FormEvent) {
     e.preventDefault(); setError(""); setMessage(""); setBusy(true);
     try {
@@ -111,7 +113,7 @@ export default function Bases({request, json}:{request:(path:string, options?:Re
         <div id="location-validation" className={`location-status ${validation?.status==="VALIDADA"?"location-status-valid":validation?"location-status-warning":""}`} role="status" aria-live="polite">
           <strong>{validating?"Comprobando ubicación…":validation?.status==="VALIDADA"?"Ubicación verificada":validation?"No se puede guardar esta ubicación":"Ubicación pendiente"}</strong>
           <p>{validating?"Consultando los límites departamental y municipal.":validation?validation.message:"Selecciona municipio y coordenadas para comprobar la ubicación con el MGN 2025."}</p>
-          {validation&&validation.status!=="VALIDADA"&&<p>Revisa el municipio o selecciona otro punto; si falta la geometría o está cerca del límite, solicita revisión.</p>}
+          {validation?.status==="ERROR"?<button type="button" onClick={()=>setValidationAttempt(n=>n+1)}>Reintentar comprobación</button>:validation&&validation.status!=="VALIDADA"&&<p>Revisa el municipio o selecciona otro punto; si falta la geometría o está cerca del límite, solicita revisión.</p>}
         </div>
         <label><input type="checkbox" required checked={form.coordinates_confirmed} onChange={e=>setForm({...form,coordinates_confirmed:e.target.checked})}/> Confirmo que revisé la ubicación de esta base.</label>
         <div className="lab-actions"><button className="primary" disabled={busy||validating||validation?.status!=="VALIDADA"}>{busy?"Guardando…":"Guardar base"}</button></div>
