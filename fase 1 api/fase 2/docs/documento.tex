@@ -70,7 +70,7 @@
 \section{Introducción}
 El acceso equitativo a servicios de salud de atención primaria representa uno de los desafíos más complejos de salud pública en Colombia. En las regiones rurales apartadas y en los territorios colectivos indígenas, la distancia física a los centros urbanos y la precaria infraestructura vial imponen barreras casi insalvables para los pacientes. Como consecuencia, las brigadas médicas extramurales constituyen con frecuencia el único mecanismo de contacto preventivo y curativo con el sistema sanitario institucional.
 
-No obstante, la planeación y el despliegue de estos operativos móviles suelen basarse en criterios empíricos, presiones presupuestales coyunturales o solicitudes informales, lo que ocasiona duplicidad de esfuerzos en ciertas zonas y desatención prolongada en comunidades en extrema vulnerabilidad. El presente documento reporta la consolidación técnica y metodológica de la \textbf{Segunda Fase (Desarrollo y Modelado)} de un sistema inteligente de priorización y optimización espacial. Mediante la integración de datos abiertos oficiales (RIPS, REPS, Censo DANE 2018 NBI y cartografía DIVIPOLA), se desarrollaron y contrastaron modelos de aprendizaje automático supervisado y un componente prescriptivo de Programación Lineal Entera Mixta (MILP) para transformar la toma de decisiones asistenciales en una política basada en evidencia cuantitativa.
+No obstante, la planeación y el despliegue de estos operativos móviles suelen basarse en criterios empíricos, presiones presupuestales coyunturales o solicitudes informales, lo que ocasiona duplicidad de esfuerzos en ciertas zonas y desatención prolongada en comunidades en extrema vulnerabilidad. Este informe final presenta el desarrollo, la evaluación y la simulación de un sistema inteligente de priorización y optimización espacial. Mediante la integración de datos abiertos oficiales (RIPS, REPS, Censo DANE 2018 NBI y cartografía DIVIPOLA), se desarrollaron y contrastaron modelos de aprendizaje automático supervisado y se implementó un componente prescriptivo de Programación Lineal Entera Mixta (MILP) para respaldar la toma de decisiones asistenciales con evidencia cuantitativa.
 
 % ============================================================
 % ESTADO DEL ARTE
@@ -145,9 +145,6 @@ El desarrollo se organiza en cinco etapas: \textbf{análisis, diseño, implement
     \item \textbf{Simulación:} Aplicación del sistema al escenario del Cesar, revisión de la asignación y documentación de parámetros, resultados y limitaciones.
 \end{enumerate}
 Las etapas constituyen un ciclo iterativo: los errores identificados durante las pruebas y las restricciones observadas en la simulación orientan ajustes al análisis, al diseño y a la implementación. No se presenta como concluido un despliegue web.
-
-\subsection{Fases del Proyecto de Aula}
-Los cortes académicos no deben confundirse con las etapas del ciclo de vida. La \textbf{Fase I} aportó la extracción ETL, el análisis exploratorio y el panel municipal 2017--2021; la \textbf{Fase II} aportó el entrenamiento, la evaluación de clasificadores y el modelo MILP. Para la \textbf{Fase III}, estos componentes se integran en la explicación del ciclo de vida y en la demostración del prototipo. La interfaz cartográfica, las pruebas funcionales completas y el despliegue web continúan pendientes de implementación o documentación.
 
 \subsection{Actividades a Desarrollar por Cada Objetivo Específico}
 La Tabla~\ref{tab:actividades} detalla el plan metodológico ejecutado y proyectado para garantizar el cumplimiento de cada uno de los objetivos específicos formulados.
@@ -293,7 +290,7 @@ El modelo prescriptivo selecciona destinos mediante Programación Lineal Entera 
 Aquí $P_i$ es la probabilidad estimada de prioridad alta; $V_i$, el indicador de población vulnerable; $d_i$, la distancia geodésica Haversine desde la base; $K$, la flota disponible; $M$, la cuota mínima de municipios con resguardos; y $D_{\max}$, el límite de distancia. El parámetro $\lambda$ penaliza el desplazamiento dentro de la función objetivo.
 
 \subsection{Fase de Implementación}
-La preparación de datos se automatizó mediante los scripts de extracción, transformación y carga de la Fase 1, junto con el proceso que construye el panel analítico. En la Fase 2 se implementaron el entrenamiento y la evaluación de clasificadores en \texttt{modelado.py}, y la formulación y resolución del modelo de asignación en \texttt{optimizacion\_milp.py}. Los modelos entrenados se guardaron en formato serializado para poder reutilizarlos sin repetir el entrenamiento.
+La preparación de datos se automatizó mediante los scripts de extracción, transformación y carga y el proceso de construcción del panel analítico. El script \texttt{modelado.py} entrena y evalúa los clasificadores, mientras que \texttt{optimizacion\_milp.py} formula y resuelve el problema de asignación. Los modelos entrenados se guardaron en formato serializado para poder reutilizarlos sin repetir el entrenamiento.
 
 Para la consulta individual se desarrolló \texttt{probar\_ia.py}. El script busca el municipio por nombre o código, recupera sus variables, calcula la probabilidad estimada y presenta una recomendación descriptiva. Por tanto, el prototipo funcional documentado en esta entrega es una interfaz de consola; no se reporta una aplicación web ni un mapa interactivo porque esos componentes no están implementados en los artefactos revisados.
 
@@ -364,7 +361,7 @@ Tasa $0.15$; 100 iteraciones; 15 hojas; 20 muestras mínimas por hoja \\
 \end{table}
 
 \subsection{Fase de Pruebas}
-Esta etapa recoge la evaluación cuantitativa ya realizada en la Fase II. Se distingue de las pruebas funcionales del aplicativo, para las cuales todavía no se dispone de un registro completo de casos ejecutados y resultados.
+Esta etapa presenta la evaluación cuantitativa de los modelos. La evaluación del desempeño predictivo se distingue de las pruebas funcionales del prototipo, para las cuales todavía no se dispone de un registro completo de casos ejecutados y resultados.
 
 \subsubsection{Evaluación Comparativa de Modelos}
 La comparación de los cuatro clasificadores utilizó 817 registros de municipios excluidos del entrenamiento. La Tabla~\ref{tab:metricas} reúne las métricas obtenidas para cada modelo en ese conjunto de prueba.
